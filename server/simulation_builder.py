@@ -1,14 +1,9 @@
 '''simulation_builder provides utility classes to build games'''
 
-import crisp.simulator.simulation
+import crisp.simulator.simulation as simulations
 
 
-class SimulationBuilder(object):
-    ''' SimulationBuilder build simulations '''
-
-    def __init__(self):
-        pass
-
-    def build(self):
-        ''' build a simulation '''
-        pass
+def build_simulation():
+    ''' return a new instance of the simulation '''
+    sim = simulations.Simulation()
+    return sim
