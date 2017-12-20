@@ -1,8 +1,8 @@
-''' game provides useful datastructures to manage games '''
+""" game provides useful datastructures to manage games """
 
 
 class Game(object):
-    ''' A game is a session that the user plays '''
+    """ A game is a session that the user plays """
 
     def __init__(self):
         self.simulation = None
