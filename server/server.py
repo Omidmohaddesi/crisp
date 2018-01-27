@@ -35,7 +35,7 @@ def new_game():
     game_id = request.args.get('game_id')
     start_week = request.args.get('start_week')
 
-    game = build_game(simulation_builder)
+    game = build_game()
     games[game_id] = game
 
     token_payload = {
