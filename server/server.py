@@ -98,7 +98,7 @@ def get_game_param():
                 i['week'] = value
 
     if param == 'inventory':
-        value = game.simulation.health_centers[0].inventory()
+        value = game.simulation.health_centers[0].inventory_level()
         for i in parameters:
             if i['user_id'] == user_id:
                 i['inventory'] = value
@@ -221,6 +221,15 @@ def next_cycle():
 
     game_id = token_payload['game_id']
     game = games[game_id]
+
+    game.get_current_history_item(game, now=1)
+
+    simulation = game.simulation
+
+    decision_maker = dmaker.PerAgentDecisionMaker()
+
+    runner = sim_runner.SimulationRunner(simulation, decision_maker)
+    runner.next_cycle()
 
 
 @app.route('/Charts/<filename>')
