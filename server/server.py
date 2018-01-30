@@ -81,18 +81,23 @@ def get_game_param():
     ''' respond the request of querying the value of a simulation parameter. '''
 
     token = request.args.get('token')
+    param = request.args.get('param')
+
     token_payload = jwt.decode(token, 'SECRET_KEY')
 
     game_id = token_payload['game_id']
     game = games[game_id]
 
+    # for i in range(0, 10):
+    #     game.runner.next_cycle()
+    #     value = game.simulation.health_centers[0].inventory_level()
+
     user_id = token_payload['user_id']
 
-    param = request.args.get('param_name')
     value = 0
 
     if param == 'week':
-        value = game.simulation.health_centers[0].time()
+        value = game.simulation.now
         for i in parameters:
             if i['user_id'] == user_id:
                 i['week'] = value
@@ -104,20 +109,24 @@ def get_game_param():
                 i['inventory'] = value
 
     if param == 'urgent':
-        value = game.simulation.health_centers[0].urgent()
+        value = game.simulation.health_centers[0].urgent
         for i in parameters:
             if i['user_id'] == user_id:
                 i['urgent'] = value
 
     if param == 'non_urgent':
-        value = game.simulation.health_centers[0].non_urgent()
+        value = game.simulation.health_centers[0].non_urgent
         for i in parameters:
             if i['user_id'] == user_id:
                 i['non_urgent'] = value
 
     if param == 'on_order_DS1':
-        on_order = game.simulation.health_centers[0].on_order()
-        value = sum(i['amount'] for i in on_order if i['destination'] == 2)
+        # on_order = game.simulation.health_centers[0].on_order()
+        # value = sum(i['amount'] for i in on_order if i['destination'] == 2)
+
+        '''how to get on_order from destination == 2     ?????????????????'''
+        value = sum(order.amount for order in game.simulation.health_centers[0].on_order
+                    if order.destination == 2)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['on_order_DS1'] = value
@@ -212,7 +221,7 @@ def id_generator():
     return players[player_id]
 
 
-@app.route('/api/next_cycle', methods=['POST'])
+@app.route('/api/next_cycle', methods=['GET', 'POST'])
 def next_cycle():
     ''' respond the request of moving the simulation to the next cycle. '''
 
@@ -222,15 +231,18 @@ def next_cycle():
     game_id = token_payload['game_id']
     game = games[game_id]
 
-    game.get_current_history_item(game, now=1)
+    # game.get_current_history_item(game, now=1)
 
-    simulation = game.simulation
+    game.runner.next_cycle()
 
-    decision_maker = dmaker.PerAgentDecisionMaker()
-
-    runner = sim_runner.SimulationRunner(simulation, decision_maker)
-    runner.next_cycle()
-
+    # simulation = game.simulation
+    #
+    # decision_maker = dmaker.PerAgentDecisionMaker()
+    #
+    # runner = sim_runner.SimulationRunner(simulation, decision_maker)
+    # runner.next_cycle()
+    week = game.simulation.now
+    return str(week)
 
 @app.route('/Charts/<filename>')
 def send_image(filename):
