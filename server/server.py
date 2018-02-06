@@ -124,30 +124,41 @@ def get_game_param():
         # on_order = game.simulation.health_centers[0].on_order()
         # value = sum(i['amount'] for i in on_order if i['destination'] == 2)
 
-        '''how to get on_order from destination == 2     ?????????????????'''
-        value = sum(order.amount for order in game.simulation.health_centers[0].on_order
-                    if order.destination == 2)
+        value = sum(game.simulation.health_centers[0].on_order[j].amount
+                    for j in range(0, len(game.simulation.health_centers[0].on_order))
+                    if game.simulation.health_centers[0].on_order[j].dst.id == 2)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['on_order_DS1'] = value
 
     if param == 'on_order_DS2':
-        on_order = game.simulation.health_centers[0].on_order()
-        value = sum(i['amount'] for i in on_order if i['destination'] == 3)
+        # on_order = game.simulation.health_centers[0].on_order()
+        # value = sum(i['amount'] for i in on_order if i['destination'] == 3)
+        value = sum(game.simulation.health_centers[0].on_order[j].amount
+                    for j in range(0, len(game.simulation.health_centers[0].on_order))
+                    if game.simulation.health_centers[0].on_order[j].dst.id == 3)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['on_order_DS2'] = value
 
     if param == 'received_DS1':
-        delivery = game.simulation.health_centers[0].delivery()
-        value = sum(i["item"]["amount"] for i in delivery if i["src"] == 2)
+        # delivery = game.simulation.health_centers[0].delivery()
+        # value = sum(i["item"]["amount"] for i in delivery if i["src"] == 2)
+        value = sum(
+            game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery'][j]["item"].amount
+            for j in range(0, len(game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery']))
+            if game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery'][j]["src"].id == 2)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['received_DS1'] = value
 
     if param == 'received_DS2':
-        delivery = game.simulation.health_centers[0].delivery()
-        value = sum(i["item"]["amount"] for i in delivery if i["src"] == 3)
+        # delivery = game.simulation.health_centers[0].delivery()
+        # value = sum(i["item"]["amount"] for i in delivery if i["src"] == 3)
+        value = sum(
+            game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery'][j]["item"].amount
+            for j in range(0, len(game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery']))
+            if game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery'][j]["src"].id == 3)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['received_DS2'] = value
