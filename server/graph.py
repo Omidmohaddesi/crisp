@@ -8,6 +8,7 @@ import numpy as np
 # def graph(jsonfile, dec_file, output_dir, chart_path, week_no, player_id):           # jsonfile = simulator_output.json
 def graph(game, dec_file, output_dir, chart_path, week_no, player_id):  # jsonfile = simulator_output.json
 
+
     simjsonfile = open(jsonfile)
     decision = open(dec_file)
 
@@ -40,6 +41,7 @@ def graph(game, dec_file, output_dir, chart_path, week_no, player_id):  # jsonfi
 
 
 
+    for i in range(1, 10):
 
 
 
