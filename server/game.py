@@ -25,11 +25,11 @@ def build_game():
 # ------------------------------------
 # Testing
 
-game1 = build_game()
-
-
-for i in range(0, 50):
-    game1.runner.next_cycle()
-    a = game1.simulation.health_centers[0].urgent
-    b = game1.simulation.now
-    print(a, b)
+# game1 = build_game()
+#
+#
+# for i in range(0, 50):
+#     game1.runner.next_cycle()
+#     a = game1.simulation.health_centers[0].urgent
+#     b = game1.simulation.now
+#     print(a, b)
