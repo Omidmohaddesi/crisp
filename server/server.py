@@ -6,11 +6,15 @@ from flask_restful import Resource, Api
 import uuid
 import jwt
 import datetime
+import os
 
 from game import build_game
+from graph import graph
 from simulation_builder import build_simulation
 
-app = Flask(__name__, static_folder='Charts')
+path = os.path.join(os.path.abspath('..'), 'charts')
+
+app = Flask(__name__, static_folder=path)
 api = Api(app)
 
 games = {}
@@ -91,10 +95,6 @@ def get_game_param():
 
     game_id = token_payload['game_id']
     game = games[game_id]
-
-    # for i in range(0, 10):
-    #     game.runner.next_cycle()
-    #     value = game.simulation.health_centers[0].inventory_level()
 
     user_id = token_payload['user_id']
 
@@ -268,6 +268,23 @@ def next_cycle():
     # runner.next_cycle()
     week = game.simulation.now
     return str(week)
+
+
+@app.route("/api/update_graphs", methods=['GET'])
+def update():
+    ''' updates graphs' images for the gamettes for each player. '''
+
+    token = request.args.get('token')
+    token_payload = jwt.decode(token, 'SECRET_KEY')
+
+    game_id = token_payload['game_id']
+    game = games[game_id]
+
+    user_id = token_payload['user_id']
+
+    graph(game, path, user_id=user_id)
+
+    return "updated!"
 
 
 @app.route('/Charts/<filename>')

@@ -20,3 +20,4 @@ def build_game():
     game.runner = sim.runner
 
     return game
+
