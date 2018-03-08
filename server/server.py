@@ -1,4 +1,4 @@
-''' Server builds a flask server to provide APIs for the game '''
+""" Server builds a flask server to provide APIs for the game """
 
 from flask import Flask, send_from_directory
 from flask import request
@@ -21,15 +21,19 @@ decisions = []
 
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'http://www.neumadscience.com')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add(
+        'Access-Control-Allow-Origin',
+        'http://www.neumadscience.com')
+    response.headers.add(
+        'Access-Control-Allow-Headers',
+        'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
     return response
 
 
 @app.route('/api/create_game', methods=['GET'])
 def new_game():
-    ''' respond to the request from the client to create a new game '''
+    """ respond to the request from the client to create a new game """
 
     user_id = request.args.get('user_id')
     game_id = request.args.get('game_id')
@@ -45,33 +49,33 @@ def new_game():
         'user_id': user_id
     }
 
-    par = {
-        "user_id": user_id,
-        "game_id": game_id,
-        "week": start_week,
-        "inventory": 0,
-        "urgent": 0,
-        "non_urgent": 0,
-        "on_order_DS1": 0,
-        "on_order_DS2": 0,
-        "received_DS1": 0,
-        "received_DS2": 0
-    }
-    parameters.append(par)
-
-    dec = {
-        "user_id": user_id,
-        "game_id": game_id,
-        "week": start_week,
-        "order_type": "",
-        "allocation_type": "",
-        "satisfied_urgent": 0,
-        "satisfied_non_urgent": 0,
-        "order_amount_DS1": 0,
-        "order_amount_DS2": 0,
-        "order_amount_total": 0
-    }
-    decisions.append(dec)
+    # par = {
+    #     "user_id": user_id,
+    #     "game_id": game_id,
+    #     "week": start_week,
+    #     "inventory": 0,
+    #     "urgent": 0,
+    #     "non_urgent": 0,
+    #     "on_order_DS1": 0,
+    #     "on_order_DS2": 0,
+    #     "received_DS1": 0,
+    #     "received_DS2": 0
+    # }
+    # parameters.append(par)
+    #
+    # dec = {
+    #     "user_id": user_id,
+    #     "game_id": game_id,
+    #     "week": start_week,
+    #     "order_type": "",
+    #     "allocation_type": "",
+    #     "satisfied_urgent": 0,
+    #     "satisfied_non_urgent": 0,
+    #     "order_amount_DS1": 0,
+    #     "order_amount_DS2": 0,
+    #     "order_amount_total": 0
+    # }
+    # decisions.append(dec)
 
     return jwt.encode(token_payload, 'SECRET_KEY')
 
@@ -124,9 +128,11 @@ def get_game_param():
         # on_order = game.simulation.health_centers[0].on_order()
         # value = sum(i['amount'] for i in on_order if i['destination'] == 2)
 
-        value = sum(game.simulation.health_centers[0].on_order[j].amount
-                    for j in range(0, len(game.simulation.health_centers[0].on_order))
-                    if game.simulation.health_centers[0].on_order[j].dst.id == 2)
+        value = sum(
+            game.simulation.health_centers[0].on_order[j].amount
+            for j in range(
+                0, len(game.simulation.health_centers[0].on_order))
+            if game.simulation.health_centers[0].on_order[j].dst.id == 2)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['on_order_DS1'] = value
@@ -134,9 +140,11 @@ def get_game_param():
     if param == 'on_order_DS2':
         # on_order = game.simulation.health_centers[0].on_order()
         # value = sum(i['amount'] for i in on_order if i['destination'] == 3)
-        value = sum(game.simulation.health_centers[0].on_order[j].amount
-                    for j in range(0, len(game.simulation.health_centers[0].on_order))
-                    if game.simulation.health_centers[0].on_order[j].dst.id == 3)
+        value = sum(
+            game.simulation.health_centers[0].on_order[j].amount
+            for j in range(
+                0, len(game.simulation.health_centers[0].on_order))
+            if game.simulation.health_centers[0].on_order[j].dst.id == 3)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['on_order_DS2'] = value
@@ -145,9 +153,12 @@ def get_game_param():
         # delivery = game.simulation.health_centers[0].delivery()
         # value = sum(i["item"]["amount"] for i in delivery if i["src"] == 2)
         value = sum(
-            game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery'][j]["item"].amount
-            for j in range(0, len(game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery']))
-            if game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery'][j]["src"].id == 2)
+            game.simulation.health_centers[0].get_history_item(
+                game.simulation.now)['delivery'][j]["item"].amount for j in range(
+                0, len(
+                    game.simulation.health_centers[0].get_history_item(
+                        game.simulation.now)['delivery'])) if game.simulation.health_centers[0].get_history_item(
+                        game.simulation.now)['delivery'][j]["src"].id == 2)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['received_DS1'] = value
@@ -156,9 +167,12 @@ def get_game_param():
         # delivery = game.simulation.health_centers[0].delivery()
         # value = sum(i["item"]["amount"] for i in delivery if i["src"] == 3)
         value = sum(
-            game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery'][j]["item"].amount
-            for j in range(0, len(game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery']))
-            if game.simulation.health_centers[0].get_history_item(game.simulation.now)['delivery'][j]["src"].id == 3)
+            game.simulation.health_centers[0].get_history_item(
+                game.simulation.now)['delivery'][j]["item"].amount for j in range(
+                0, len(
+                    game.simulation.health_centers[0].get_history_item(
+                        game.simulation.now)['delivery'])) if game.simulation.health_centers[0].get_history_item(
+                        game.simulation.now)['delivery'][j]["src"].id == 3)
         for i in parameters:
             if i['user_id'] == user_id:
                 i['received_DS2'] = value
@@ -222,7 +236,7 @@ class Decision(Resource):
 
 @app.route("/api/get_user_id")
 def id_generator():
-    ''' respond the request from the client to generate a unique user_id '''
+    """ respond the request from the client to generate a unique user_id """
 
     user_id = str(uuid.uuid4())
     player_id = int(list(players)[-1].lstrip('id')) + 1
@@ -234,7 +248,7 @@ def id_generator():
 
 @app.route('/api/next_cycle', methods=['GET', 'POST'])
 def next_cycle():
-    ''' respond the request of moving the simulation to the next cycle. '''
+    """ respond the request of moving the simulation to the next cycle. """
 
     token = request.args.get('token')
     token_payload = jwt.decode(token, 'SECRET_KEY')
@@ -254,6 +268,7 @@ def next_cycle():
     # runner.next_cycle()
     week = game.simulation.now
     return str(week)
+
 
 @app.route('/Charts/<filename>')
 def send_image(filename):
