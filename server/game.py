@@ -1,4 +1,4 @@
-""" game provides useful datastructures to manage games """
+""" game provides useful data structures to manage games """
 
 import simulation_builder
 
@@ -9,10 +9,11 @@ class Game(object):
     def __init__(self):
         self.simulation = None
         self.runner = None
+        self.hash_id = ""
 
 
 def build_game():
-    ''' instantiate a new game '''
+    """ instantiate a new game """
     sim = simulation_builder.build_simulation()
 
     game = Game()

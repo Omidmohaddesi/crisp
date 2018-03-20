@@ -27,6 +27,24 @@ def start_game():
 
 
 def new_game():
+    num_human_players = ask_for_num_players()
+
+    req = requests.get(server_url + 'create_game', {
+        'user_id': str(uuid.uuid4()),
+        'game_id': str(uuid.uuid4()),
+        'start_week': 0,
+        'num_human_players': num_human_players,
+    })
+    response = req.json()
+
+    if req.status_code == 200:
+        print("OK, Let your partners join game with token \"" + response['hash_id'] + "\".")
+        return
+    else:
+        raise Exception("Failed, server returns " + str(req.status_code))
+
+
+def ask_for_num_players():
     while True:
         print("How many human players (1 - 6)?:")
         choice = raw_input("# ")
@@ -41,14 +59,7 @@ def new_game():
             print("Number of players must be between 1 to 6. Please try again.")
             continue
 
-        req = requests.get(server_url + 'create_game', {
-            'user_id': str(uuid.uuid4()),
-            'game_id': str(uuid.uuid4()),
-            'start_week': 0,
-            'num_human_players': num_human_players,
-        })
-
-        print req
+        return num_human_players
 
 
 

@@ -3,6 +3,8 @@
 from flask import Flask, send_from_directory
 from flask import request
 from flask_restful import Resource, Api
+from flask import jsonify
+from hashids import Hashids
 import uuid
 import jwt
 import datetime
@@ -16,8 +18,11 @@ path = os.path.join(os.path.abspath('..'), 'charts')
 
 app = Flask(__name__, static_folder=path)
 api = Api(app)
+hashids = Hashids(salt="Drug Shortage")
 
+game_count = 0
 games = {}
+hash_id_to_game_map = {}
 parameters = []
 players = {'id0': 0}
 decisions = []
@@ -42,9 +47,18 @@ def new_game():
     user_id = request.args.get('user_id')
     game_id = request.args.get('game_id')
     start_week = request.args.get('start_week')
+    role = request.args.get('role')
 
+    global game_count
+    game_count = game_count + 1
     game = build_game()
     games[game_id] = game
+    hash_id = hashids.encode(game_count)
+    game.hash_id = hash_id
+    hash_id_to_game_map[hash_id] = game
+
+
+    # TODO (Yifan): Fast forward the game to the starting week
 
     token_payload = {
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=0),
@@ -53,40 +67,16 @@ def new_game():
         'user_id': user_id
     }
 
-    # par = {
-    #     "user_id": user_id,
-    #     "game_id": game_id,
-    #     "week": start_week,
-    #     "inventory": 0,
-    #     "urgent": 0,
-    #     "non_urgent": 0,
-    #     "on_order_DS1": 0,
-    #     "on_order_DS2": 0,
-    #     "received_DS1": 0,
-    #     "received_DS2": 0
-    # }
-    # parameters.append(par)
-    #
-    # dec = {
-    #     "user_id": user_id,
-    #     "game_id": game_id,
-    #     "week": start_week,
-    #     "order_type": "",
-    #     "allocation_type": "",
-    #     "satisfied_urgent": 0,
-    #     "satisfied_non_urgent": 0,
-    #     "order_amount_DS1": 0,
-    #     "order_amount_DS2": 0,
-    #     "order_amount_total": 0
-    # }
-    # decisions.append(dec)
+    return jsonify({
+        'token': jwt.encode(token_payload, 'SECRET_KEY'),
+        'hash_id': hash_id,
+    })
 
-    return jwt.encode(token_payload, 'SECRET_KEY')
 
 
 @app.route('/api/get_game_param', methods=['GET'])
 def get_game_param():
-    ''' respond the request of querying the value of a simulation parameter. '''
+    """ respond the request of querying the value of a simulation parameter. """
 
     token = request.args.get('token')
     param = request.args.get('param')
