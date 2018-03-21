@@ -1,4 +1,4 @@
-'''simulation_builder provides utility classes to build games'''
+"""simulation_builder provides utility classes to build games"""
 
 import simulator.simulation as sim
 import simulator.agent as agent
@@ -15,7 +15,7 @@ class ReturnValue(object):
 
 
 def build_simulation():
-    ''' return a new instance of the simulation '''
+    """ return a new instance of the simulation """
     simulation = sim.Simulation()
 
     mn1 = agent.Manufacturer()

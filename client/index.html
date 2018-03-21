@@ -10,13 +10,14 @@
 </head>
 <body>
   <button id="create-game-button" type="button">Create game</button>
-  <button type="button">Join game</button>
+  <button id="join-game-button" type="button">Join game</button>
 
   <div id="create-game-dialog">
     <h2>Create Game</h2>
 
     <label>Number of human players:</label>
-    <input type="range" min="1" max="6" step="1"/>
+    <input id="num-human-player-slide" type="range" min="1" max="6" step="1" value="1"/>
+    <span id="num-human-player-text">1</span>
     <br/>
 
     <div id="waiting-for-others-to-join"><div>
@@ -31,9 +32,30 @@
     <input type="text"/>
     <br/>
 
-    <button>Ok</botton>
+    <button id="join-game-ok-button" type="button">Ok</botton>
+  </div>
+
+  <div id="health-center-play">
+    <h2>Health Center</h2>
+    <table id="health-center-data-table">
+      <tr>
+        <th>Cycle</th>
+        <th>Urgent</th>
+        <th>Non-urgent</th>
+        <th>Inventory</th>
+      </tr>
+    </table>
+  </div>
+
+  <div id="distributor-play">
+  
   </div>
   
+  <div id="manufacturer-play">
+  
+  </div>
+  
+
   <script src="dist/app.bundle.js"></script>
 </body>
 </html>
