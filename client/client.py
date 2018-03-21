@@ -1,7 +1,9 @@
 import requests
 import uuid
+import sys
 
 server_url = "http://127.0.0.1:5000/api/"
+token = ""
 
 
 def main():
@@ -27,7 +29,8 @@ def start_game():
 
 
 def new_game():
-    num_human_players = ask_for_num_players()
+    global token
+    num_human_players = take_integer_user_input('Number of human players (1 - 6)?', (1, 6))
 
     req = requests.get(server_url + 'create_game', {
         'user_id': str(uuid.uuid4()),
@@ -39,28 +42,10 @@ def new_game():
 
     if req.status_code == 200:
         print("OK, Let your partners join game with token \"" + response['hash_id'] + "\".")
+        token = response['token']
         return
     else:
         raise Exception("Failed, server returns " + str(req.status_code))
-
-
-def ask_for_num_players():
-    while True:
-        print("How many human players (1 - 6)?:")
-        choice = raw_input("# ")
-
-        try:
-            num_human_players = int(choice)
-        except ValueError:
-            print "Invalid input. Please try again."
-            continue
-
-        if num_human_players > 6 or num_human_players < 1:
-            print("Number of players must be between 1 to 6. Please try again.")
-            continue
-
-        return num_human_players
-
 
 
 def join_game():
@@ -68,7 +53,49 @@ def join_game():
 
 
 def play_game():
+    while True:
+        retrieve_game_param()
+        make_decision()
+
+def retrieve_game_param():
+    cycle = take_integer_user_input('\nWhich cycle?')
+    agent_id = take_integer_user_input('\nWhich agent (1 - 6)?')
+    param = take_integer_user_input(
+        '\nWhich parameter?\n'
+        '\t1. inventory\n'
+        '\t0. Done! Go to make a decision.\n'
+    )
+
+    if param = 0:
+        return
+
+    req = requests.get(server_url + 'create_game', {
+        'token': token,
+        'cycle': cycle,
+        'agent': agent_id,
+        'param': param,
+    })
+
+
+def make_decision():
     pass
+
+def take_integer_user_input(prompt, range=(-sys.maxint - 1, sys.maxint)):
+    while True:
+        print(prompt)
+        choice = raw_input('# ')
+
+        try:
+            integer = int(choice)
+        except ValueError:
+            print('Invalid input. Please try again.')
+            continue
+
+        if integer < range[0] or integer > range[1]:
+            print('Invalid input. Please try again.')
+            continue
+
+        return integer
 
 
 if __name__ == '__main__':

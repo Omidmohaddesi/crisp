@@ -57,8 +57,8 @@ def new_game():
     game.hash_id = hash_id
     hash_id_to_game_map[hash_id] = game
 
-
     # TODO (Yifan): Fast forward the game to the starting week
+    # TODO (Yifan): Associate the player with a certain game agent
 
     token_payload = {
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=0),
@@ -71,7 +71,6 @@ def new_game():
         'token': jwt.encode(token_payload, 'SECRET_KEY'),
         'hash_id': hash_id,
     })
-
 
 
 @app.route('/api/get_game_param', methods=['GET'])
