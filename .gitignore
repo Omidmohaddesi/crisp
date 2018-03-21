@@ -108,3 +108,9 @@ venv.bak/
 
 # VIM
 .*.swp
+
+# vscode
+.vscode
+
+# node-js 
+package-lock.json

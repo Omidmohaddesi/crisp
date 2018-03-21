@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script
+      src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+
+  <title>The Drug Shortage Game</title>
+</head>
+<body>
+  <button id="create-game-button" type="button">Create game</button>
+  <button type="button">Join game</button>
+
+  <div id="create-game-dialog">
+    <h2>Create Game</h2>
+
+    <label>Number of human players:</label>
+    <input type="range" min="1" max="6" step="1"/>
+    <br/>
+
+    <div id="waiting-for-others-to-join"><div>
+
+    <button id="create-game-ok-button" type="button">Ok</botton>
+  </div>
+
+  <div id="join-game-dialog">
+    <h2>Join Game</h2>
+  
+    <label>Game ID</label>
+    <input type="text"/>
+    <br/>
+
+    <button>Ok</botton>
+  </div>
+  
+  <script src="dist/app.bundle.js"></script>
+</body>
+</html>

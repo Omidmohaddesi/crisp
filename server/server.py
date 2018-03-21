@@ -14,9 +14,9 @@ from game import build_game
 from graph import graph
 from simulation_builder import build_simulation
 
-path = os.path.join(os.path.abspath('..'), 'charts')
+path = os.path.join(os.path.abspath('..'), 'client/')
 
-app = Flask(__name__, static_folder=path)
+app = Flask(__name__, static_url_path='', static_folder=path)
 api = Api(app)
 hashids = Hashids(salt="Drug Shortage")
 
