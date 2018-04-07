@@ -96,14 +96,36 @@ def get_game_param():
     param = request.args.get('paramName')
     if param == 'inventory':
         value = agent.inventory_level()
+
     elif param == "urgent":
         if not isinstance(agent, agents.HealthCenter):
             abort (400)
         value = agent.urgent
+
     elif param == "non-urgent":
         if not isinstance(agent, agents.HealthCenter):
             abort (400)
         value = agent.non_urgent
+
+    elif param == "lost-urgent":
+        if not isinstance(agent, agents.HealthCenter):
+            abort (400)
+        hi = agent.get_history_item(game.cycle)
+        value = hi['patient_lost'][0]
+
+    elif param == "lost-non-urgent":
+        if not isinstance(agent, agents.HealthCenter):
+            abort (400)
+        hi = agent.get_history_item(game.cycle)
+        value = hi['patient_lost'][1]
+
+    elif param == "on-order":
+        value = sum(order.amount for order in agent.on_order)
+
+    elif param == "received-delivery":
+        hi = agent.get_history_item(game.cycle)
+        value = sum(d['item'].amount for d in hi['delivery'])
+
     else:
         print "Unsupported parameter type " + param
         abort(400)

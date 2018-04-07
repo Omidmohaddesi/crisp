@@ -69,12 +69,20 @@ function retrieveHealthCenterInformation() {
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>`);
     $('#health-center-data-table').append(dom);
 
     retrieveParam('urgent', $(dom.children()[1]));
     retrieveParam('non-urgent', $(dom.children()[2]));
     retrieveParam('inventory', $(dom.children()[3]));
+    retrieveParam('lost-urgent', $(dom.children()[4]));
+    retrieveParam('lost-non-urgent', $(dom.children()[5]));
+    retrieveParam('on-order', $(dom.children()[6]));
+    retrieveParam('received-delivery', $(dom.children()[7]));
 }
 
 function uploadHCDecisions() {
