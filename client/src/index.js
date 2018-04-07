@@ -43,15 +43,12 @@ function startPlayingHealthCenter() {
     retrieveHealthCenterInformation();
 }
 
-function retrieveParam(cycle, agentId, paramName, dom = null, onSuccess = null) {
+function retrieveParam(paramName, dom = null, onSuccess = null) {
     $.ajax({
         url: '/api/get_game_param', 
         method: 'GET',
-        dataType: 'json',
         data: {
             token,
-            cycle,
-            agentId,
             paramName,
         },
         success: (data) => {
@@ -75,9 +72,9 @@ function retrieveHealthCenterInformation() {
         </tr>`);
     $('#health-center-data-table').append(dom);
 
-    retrieveParam(cycle, 5, 'urgent', $(dom.children()[1]));
-    retrieveParam(cycle, 5, 'non-urgent', $(dom.children()[2]));
-    retrieveParam(cycle, 5, 'inventory', $(dom.children()[3]));
+    retrieveParam('urgent', $(dom.children()[1]));
+    retrieveParam('non-urgent', $(dom.children()[2]));
+    retrieveParam('inventory', $(dom.children()[3]));
 }
 
 function uploadHCDecisions() {
