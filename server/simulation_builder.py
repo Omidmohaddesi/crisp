@@ -8,61 +8,48 @@ import simulator.decision_maker as dmaker
 import simulator.patient_model as pmodel
 
 
-class ReturnValue(object):
-    def __init__(self, simulation, runner):
-        self.simulation = simulation
-        self.runner = runner
-
-
 def build_simulation():
     """ return a new instance of the simulation """
     simulation = sim.Simulation()
 
-    mn1 = agent.Manufacturer()
-    mn1.id = 0
+    agent_builder = agent.AgentBuilder()
+    agent_builder.lead_time = 2
+    agent_builder.review_time = 0
+    agent_builder.cycle_service_level = 0.9
+    agent_builder.history_preserve_time = 20
+
+    mn1 = agent_builder.build("manufacturer")
     mn1.num_of_lines = 20
     mn1.line_capacity = 20
     mn1.num_active_lines = 20
 
-    mn2 = agent.Manufacturer()
-    mn2.id = 1
+    mn2 = agent_builder.build("manufacturer")
     mn2.num_of_lines = 20
     mn2.line_capacity = 20
     mn2.num_active_lines = 20
 
-    ds1 = agent.Distributor()
-    ds1.id = 2
 
-    ds2 = agent.Distributor()
-    ds2.id = 3
+    ds1 = agent_builder.build("distributor")
+    ds2 = agent_builder.build("distributor")
 
-    hc1 = agent.HealthCenter()
-    hc1.id = 4
-
-    hc2 = agent.HealthCenter()
-    hc2.id = 5
+    hc1 = agent_builder.build("health_center")
+    hc2 = agent_builder.build("health_center")
 
     hc1.upstream_nodes.extend([ds1, ds2])
-    hc2.upstream_nodes.extend([ds2])
-    ds1.upstream_nodes.extend([mn2])
-    ds1.downstream_nodes.extend([hc1])
+    hc2.upstream_nodes.extend([ds1, ds2])
+    ds1.upstream_nodes.extend([mn1, mn2])
+    ds1.downstream_nodes.extend([hc1, hc2])
     ds2.upstream_nodes.extend([mn1, mn2])
     ds2.downstream_nodes.extend([hc1, hc2])
-    mn1.downstream_nodes.extend([ds2])
+    mn1.downstream_nodes.extend([ds1, ds2])
     mn2.downstream_nodes.extend([ds1, ds2])
 
-    # hc1.upstream_nodes.extend([ds1, ds2])
-    # hc2.upstream_nodes.extend([ds1, ds2])
-    # ds1.upstream_nodes.extend([mn1, mn2])
-    # ds1.downstream_nodes.extend([hc1, hc2])
-    # ds2.upstream_nodes.extend([mn1, mn2])
-    # ds2.downstream_nodes.extend([hc1, hc2])
-    # mn1.downstream_nodes.extend([ds1, ds2])
-    # mn2.downstream_nodes.extend([ds1, ds2])
-
-    simulation.manufacturers.extend([mn1, mn2])
-    simulation.distributors.extend([ds1, ds2])
-    simulation.health_centers.extend([hc1, hc2])
+    simulation.add_agent(mn1)
+    simulation.add_agent(mn2)
+    simulation.add_agent(ds1)
+    simulation.add_agent(ds2)
+    simulation.add_agent(hc1)
+    simulation.add_agent(hc2)
 
     net = network.Network(6)
     info_net = network.Network(6)
@@ -105,6 +92,6 @@ def build_simulation():
 
     runner = sim_runner.SimulationRunner(simulation, decision_maker)
 
-    return ReturnValue(simulation, runner)
+    return (simulation, runner)
 
 

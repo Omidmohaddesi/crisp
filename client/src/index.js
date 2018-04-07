@@ -75,9 +75,79 @@ function retrieveHealthCenterInformation() {
         </tr>`);
     $('#health-center-data-table').append(dom);
 
-    retrieveParam(cycle, 5, 'inventory', dom.children()[1]);
-    retrieveParam(cycle, 5, 'urgent', dom.children()[2]);
-    retrieveParam(cycle, 5, 'non-urgent', dom.children()[3]);
+    retrieveParam(cycle, 5, 'urgent', $(dom.children()[1]));
+    retrieveParam(cycle, 5, 'non-urgent', $(dom.children()[2]));
+    retrieveParam(cycle, 5, 'inventory', $(dom.children()[3]));
+}
+
+function uploadHCDecisions() {
+    const satUrgent = $('#hc-satisfy-urgent-input').val();
+    const satNonUrgent = $('#hc-satisfy-non-urgent-input').val();
+    const orderDS1 = $('#hc-order-from-ds1-input').val();
+    const orderDS2 = $('#hc-order-from-ds2-input').val();
+
+    const req1 = $.ajax({
+        url: '/api/make_decision', 
+        method: 'GET',
+        dataType: 'json',
+        data: {
+            token,
+            'decisionName': 'satisfy_urgent',
+            'decisionValue': satUrgent
+        }
+    });
+
+    const req2 = $.ajax({
+        url: '/api/make_decision', 
+        method: 'GET',
+        dataType: 'json',
+        data: {
+            token,
+            'decisionName': 'satisfy_non_urgent',
+            'decisionValue': satNonUrgent
+        }
+    });
+
+    const req3 = $.ajax({
+        url: '/api/make_decision', 
+        method: 'GET',
+        dataType: 'json',
+        data: {
+            token,
+            'decisionName': 'order_from_ds1',
+            'decisionValue': orderDS1
+        }
+    });
+
+    const req4 = $.ajax({
+        url: '/api/make_decision', 
+        method: 'GET',
+        dataType: 'json',
+        data: {
+            token,
+            'decisionName': 'order_from_ds2',
+            'decisionValue': orderDS2
+        }
+    });
+
+    return req1, req2, req3, req4;
+}
+
+function hcNextPeriod() {
+    $.when(uploadHCDecisions()).then( () => {
+        $.ajax({
+            url: '/api/next_period', 
+            method: 'GET',
+            dataType: 'json',
+            data: {
+                token,
+            },
+            success: () => {
+                cycle++;
+                retrieveHealthCenterInformation();
+            }
+        });
+    });
 }
 
 $('#create-game-dialog').hide();
@@ -90,3 +160,4 @@ $('#num-human-player-slide').change((e) => {
     const $this = $(e.currentTarget);
     $('#num-human-player-text').html($this.val());
 });
+$('#hc-next-period-button').click(() => hcNextPeriod());
