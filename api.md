@@ -72,6 +72,60 @@ Response: the parameter value
 
 This happens when the token provided is not valid.
 
+### Code: 400 Bad Request
+
+This happens when the paramName is not supported or the paramName is not 
+available for the agent type that the player is controlling.
+
+## Get Game History Parameter
+
+### URL
+
+`/api/get_game_history_param`
+
+### URL Parameters
+
+* token = [string]
+
+    The authorization token.
+
+* paramName = [string]
+
+    The name of the parameter
+
+* cycle = [integer]
+
+    The parameter value to retrieve at a certain cycle
+
+* agentId = [integer]
+
+    The parameter to retrieve about a certain agent
+
+### Success Response
+
+#### Code: 200
+
+Response: the parameter value
+
+### Error Response
+
+### Code: 400 Bad Request
+
+This happens when the paramName is not supported or the paramName is not 
+available for the agent type that the player is controlling.
+
+#### Code: 401 Unauthorized
+
+This happens when the token provided is not valid.
+
+#### Code: 404
+
+This happens when the `cycle` provided is not valid. It can be either too 
+early that the history has already been forgotten, or the cycle number
+if in the future.
+
+Providing an `agentId` that does not map to any agent also causes this error.
+
 ## Make a Decision
 
 ### URL

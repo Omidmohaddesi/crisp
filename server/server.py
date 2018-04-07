@@ -78,6 +78,40 @@ def new_game():
 
 @app.route('/api/get_game_param', methods=['GET'])
 def get_game_param():
+    """ respond the game parameter value to the client """
+
+    token = request.args.get('token')
+    token_payload = jwt.decode(token, 'SECRET_KEY')
+
+    game_id = token_payload['gameId']
+    game = games[game_id]
+    if game == None:
+        abort(401)
+
+    user_id = token_payload['userId']
+    agent = game.user_id_to_agent_map[user_id]
+    if agent == None:
+        abort(401)
+
+    param = request.args.get('paramName')
+    if param == 'inventory':
+        value = agent.inventory_level()
+    elif param == "urgent":
+        if not isinstance(agent, agents.HealthCenter):
+            abort (400)
+        value = agent.urgent
+    elif param == "non-urgent":
+        if not isinstance(agent, agents.HealthCenter):
+            abort (400)
+        value = agent.non_urgent
+    else:
+        print "Unsupported parameter type " + param
+        abort(400)
+
+    return str(value)
+
+@app.route('/api/get_game_history_param', methods=['GET'])
+def get_game_history_param():
     """ respond the request of querying the value of a simulation parameter. """
 
     token = request.args.get('token')
@@ -90,7 +124,7 @@ def get_game_param():
 
     game = games[game_id]
     if game == None:
-        abort(404)
+        abort(401)
 
     agent = game.simulation.agents[agent_id]
     if agent == None:
