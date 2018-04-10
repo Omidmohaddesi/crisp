@@ -5,10 +5,13 @@ let cycle = 0;
 
 function showCreateGameDialog() {
     $('#create-game-dialog').show();
+    $('#menu').hide();
 }
+
 
 function showJoinGameDialog() {
     $('#join-game-dialog').show();
+    $('#menu').hide();
 }
 
 function createGame() {
@@ -29,17 +32,20 @@ function createGame() {
         data: req,
         success: (data) => {
             token = data.token;
-            const gameHashId = data.hash_id;
+            //const gameHashId = data.hash_id;
+            
+            $('#create-game-dialog').hide();
             startPlayingHealthCenter();
         }
     });
 }
 
 function joinGame() {
-    console.error('Not implemented');
+    //console.error('Not implemented');
 }
 
 function startPlayingHealthCenter() {
+    $('#health-center-play').show();
     retrieveHealthCenterInformation();
 }
 
@@ -157,6 +163,7 @@ function hcNextPeriod() {
 
 $('#create-game-dialog').hide();
 $('#join-game-dialog').hide();
+$('#health-center-play').hide();
 $('#create-game-button').click(() => showCreateGameDialog());
 $('#join-game-button').click(() => showJoinGameDialog());
 $('#create-game-ok-button').click(() => createGame());
