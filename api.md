@@ -12,14 +12,6 @@ GET
 
 ### URL Parameters:
 
-* userId = [string]
-
-    The unique identifier of the player
-
-* gameId = [string]
-
-    The unique identifier of the game
-
 * numHumanPlayer = [integer]
 
     The number of human players, ranging from 1 to 6. 

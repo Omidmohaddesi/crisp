@@ -1,5 +1,3 @@
-import uuidv4 from 'uuid/v4';
-
 let token = '';
 let cycle = 0;
 
@@ -15,27 +13,31 @@ function showJoinGameDialog() {
 }
 
 function createGame() {
-    const gameId = uuidv4();
-    const userId = uuidv4();
     const numHumanPlayer = $('#num-human-player-slide').val();
+    const role = $('input[name=role]:checked').val(); 
 
     const req = {
-        gameId, 
-        userId,
         numHumanPlayer,
+        role,
     };
 
     $.ajax({
         url: '/api/create_game', 
         method: 'GET',
-        dataType: 'json',
         data: req,
+        datatype: 'text',
         success: (data) => {
-            token = data.token;
+            token = data;
             //const gameHashId = data.hash_id;
             
             $('#create-game-dialog').hide();
-            startPlayingHealthCenter();
+
+            if (role === 'health-center') {
+                startPlayingHealthCenter();
+            } else if (role === 'manufacturer') {
+                startPlayingManufacturer();
+            }
+
         }
     });
 }
@@ -49,10 +51,16 @@ function startPlayingHealthCenter() {
     retrieveHealthCenterInformation();
 }
 
+function startPlayingManufacturer() {
+    $('#manufacturer-play').show();
+    retrieveManufacturerInformation();
+}
+
 function retrieveParam(paramName, dom = null, onSuccess = null) {
     $.ajax({
         url: '/api/get_game_param', 
         method: 'GET',
+        datatype: 'text',
         data: {
             token,
             paramName,
@@ -91,6 +99,26 @@ function retrieveHealthCenterInformation() {
     retrieveParam('received-delivery', $(dom.children()[7]));
 }
 
+function retrieveManufacturerInformation() {
+    const dom = $(
+        `<tr>
+            <td>${cycle}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>`);
+    $('#manufacturer-data-table').append(dom);
+
+    retrieveParam('in-production', $(dom.children()[1]));
+    retrieveParam('inventory', $(dom.children()[2]));
+    retrieveParam('on-order', $(dom.children()[3]));
+    retrieveParam('backlog-ds1', $(dom.children()[4]));
+    retrieveParam('backlog-ds2', $(dom.children()[5]));
+}
+
+
 function uploadHCDecisions() {
     const satUrgent = $('#hc-satisfy-urgent-input').val();
     const satNonUrgent = $('#hc-satisfy-non-urgent-input').val();
@@ -100,7 +128,6 @@ function uploadHCDecisions() {
     const req1 = $.ajax({
         url: '/api/make_decision', 
         method: 'GET',
-        dataType: 'json',
         data: {
             token,
             'decisionName': 'satisfy_urgent',
@@ -111,7 +138,6 @@ function uploadHCDecisions() {
     const req2 = $.ajax({
         url: '/api/make_decision', 
         method: 'GET',
-        dataType: 'json',
         data: {
             token,
             'decisionName': 'satisfy_non_urgent',
@@ -122,7 +148,6 @@ function uploadHCDecisions() {
     const req3 = $.ajax({
         url: '/api/make_decision', 
         method: 'GET',
-        dataType: 'json',
         data: {
             token,
             'decisionName': 'order_from_ds1',
@@ -133,7 +158,6 @@ function uploadHCDecisions() {
     const req4 = $.ajax({
         url: '/api/make_decision', 
         method: 'GET',
-        dataType: 'json',
         data: {
             token,
             'decisionName': 'order_from_ds2',
@@ -149,7 +173,6 @@ function hcNextPeriod() {
         $.ajax({
             url: '/api/next_period', 
             method: 'GET',
-            dataType: 'json',
             data: {
                 token,
             },
@@ -161,9 +184,67 @@ function hcNextPeriod() {
     });
 }
 
+function uploadMNDecisions() {
+    const produce = $('#mn-produce').val();
+    const satisfyDS1 = $('#mn-satisfy-ds1').val();
+    const satisfyDS2 = $('#mn-satisfy-ds2').val();
+
+    const req1 = $.ajax({
+        url: '/api/make_decision', 
+        method: 'GET',
+        data: {
+            token,
+            'decisionName': 'produce',
+            'decisionValue': produce,
+        }
+    });
+
+    const req2 = $.ajax({
+        url: '/api/make_decision', 
+        method: 'GET',
+        data: {
+            token,
+            'decisionName': 'satisfy_ds1',
+            'decisionValue': satisfyDS1
+        }
+    });
+
+
+    const req3 = $.ajax({
+        url: '/api/make_decision', 
+        method: 'GET',
+        data: {
+            token,
+            'decisionName': 'satisfy_ds2',
+            'decisionValue': satisfyDS2
+        }
+    });
+
+    return req1, req2, req3;
+}
+
+
+function mnNextPeriod() {
+    $.when(uploadMNDecisions()).then( () => {
+        $.ajax({
+            url: '/api/next_period', 
+            method: 'GET',
+            data: {
+                token,
+            },
+            success: () => {
+                cycle++;
+                retrieveManufacturerInformation();
+            }
+        });
+    });
+
+}
+
 $('#create-game-dialog').hide();
 $('#join-game-dialog').hide();
 $('#health-center-play').hide();
+$('#manufacturer-play').hide();
 $('#create-game-button').click(() => showCreateGameDialog());
 $('#join-game-button').click(() => showJoinGameDialog());
 $('#create-game-ok-button').click(() => createGame());
@@ -173,3 +254,4 @@ $('#num-human-player-slide').change((e) => {
     $('#num-human-player-text').html($this.val());
 });
 $('#hc-next-period-button').click(() => hcNextPeriod());
+$('#mn-next-period-button').click(() => mnNextPeriod());

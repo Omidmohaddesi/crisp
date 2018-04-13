@@ -114,3 +114,7 @@ venv.bak/
 
 # node-js 
 package-lock.json
+
+# Figures
+*.png
+*.eps
