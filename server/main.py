@@ -9,6 +9,11 @@ from flask import Flask, send_from_directory
 from flask import request
 from flask import abort
 from hashids import Hashids
+import pandas as pd
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from server.game import build_game
 from server.graph import graph
@@ -156,6 +161,9 @@ def get_game_param():
         history_item = agent.get_history_item(game.cycle)
         value = sum(d['item'].amount for d in history_item['delivery'])
 
+    elif param == "in-production":
+        value = sum([item.amount for item in agent.in_production])
+
     elif param == 'backlog-ds1':
         value = 0
         for order in agent.backlog:
@@ -215,7 +223,7 @@ def get_game_history_param():
 
 @APP.route('/api/make_decision', methods=['GET'])
 def make_decision():
-    ''' respond the request of posting the value of a decision parameters. '''
+    """ respond the request of posting the value of a decision parameters. """
 
     token = request.args.get('token')
     game, agent = get_game_and_agent_from_token(token)
@@ -265,14 +273,74 @@ def next_cycle():
     remove_human_controlled_agents_decisions(game)
     game.parse_decisions()
     game.runner._apply_decision(game.cycle)
+
+    # try:
+    #     draw_figures(game)
+    # except Exception as e:
+    #     print e
+
     game.cycle = game.cycle + 1
+    game.simulation.now += 1
     game.runner._update_patient(game.cycle)
     game.runner._update_agents(game.cycle)
     game.runner._update_network(game.cycle)
     game.runner._exogenous_event(game.cycle)
 
     week = game.simulation.now
+
+
     return str(week)
+
+
+def draw_figures(game):
+
+    for agent in game.simulation.agents:
+        game.data = game.data.append(
+            pd.DataFrame(agent.collect_data(game.simulation.now), columns=game.data_columns))
+    game.data.reset_index()
+    print game.data.to_string()
+
+
+    hc1_data = game.data[game.data['agent'] == 'hc_4']
+    plt.figure()
+    sns.tsplot(hc1_data, time='time', condition='item', value='value',
+               unit='unit').set_title('Health Center 1')
+    plt.savefig('hc1.png', dpi=600)
+
+    hc2_data = game.data[game.data['agent'] == 'hc_5']
+    plt.figure()
+    sns.tsplot(hc2_data, time='time', condition='item', value='value',
+               unit='unit').set_title('Health Center 2')
+    plt.savefig('hc2.png', dpi=600)
+
+    ds1_data = game.data[game.data['agent'] == 'ds_2']
+    plt.figure()
+    sns.tsplot(ds1_data, time='time', condition='item',
+               value='value', unit='unit').set_title('Distributor 1')
+    plt.savefig('ds1.png', dpi=600)
+
+    ds2_data = game.data[game.data['agent'] == 'ds_3']
+    plt.figure()
+    sns.tsplot(ds2_data, time='time', condition='item',
+               value='value', unit='unit').set_title('Distributor 2')
+    plt.savefig('ds2.png', dpi=600)
+
+    mn1_data = game.data[game.data['agent'] == 'mn_0']
+    plt.figure()
+    sns.tsplot(mn1_data, time='time', condition='item',
+               value='value', unit='unit').set_title('Manufacture 1')
+    plt.savefig('mn1.png', dpi=600)
+
+    mn2_data = game.data[game.data['agent'] == 'mn_1']
+    plt.figure()
+    sns.tsplot(mn2_data, time='time', condition='item',
+               value='value', unit='unit').set_title('Manufacture 2')
+    plt.savefig('mn2.png', dpi=600)
+    inv_data = game.data[game.data['item'] == 'inventory']
+    plt.figure()
+    sns.tsplot(inv_data, time='time', condition='agent',
+               value='value', unit='unit').set_title('Inventory')
+    plt.savefig('inventory.png', dpi=600)
 
 
 @APP.route("/api/update_graphs", methods=['GET'])

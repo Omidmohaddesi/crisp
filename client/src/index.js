@@ -107,13 +107,15 @@ function retrieveManufacturerInformation() {
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
         </tr>`);
     $('#manufacturer-data-table').append(dom);
 
-    retrieveParam('inventory', $(dom.children()[1]));
-    retrieveParam('on-order', $(dom.children()[2]));
-    retrieveParam('backlog-ds1', $(dom.children()[3]));
-    retrieveParam('backlog-ds2', $(dom.children()[4]));
+    retrieveParam('in-production', $(dom.children()[1]));
+    retrieveParam('inventory', $(dom.children()[2]));
+    retrieveParam('on-order', $(dom.children()[3]));
+    retrieveParam('backlog-ds1', $(dom.children()[4]));
+    retrieveParam('backlog-ds2', $(dom.children()[5]));
 }
 
 

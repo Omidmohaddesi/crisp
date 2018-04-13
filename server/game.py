@@ -1,10 +1,13 @@
 """ game provides useful data structures to manage games """
 
+import pandas as pd
+
 from server import simulation_builder
 from simulator.decision import TreatDecision
 from simulator.decision import OrderDecision
 from simulator.decision import ProduceDecision
 from simulator.decision import AllocateDecision
+
 
 class Game(object):
     """ A game is a session that the user plays """
@@ -16,6 +19,9 @@ class Game(object):
         self.hash_id = ""
         self.user_id_to_agent_map = {}
         self.decisions = []
+
+        self.data_columns = ['time', 'agent', 'item', 'value', 'unit']
+        self.data = pd.DataFrame(columns=self.data_columns)
 
     def parse_decisions(self):
         """ convert the game decision to simulator desicion """
