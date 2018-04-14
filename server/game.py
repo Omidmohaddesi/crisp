@@ -13,8 +13,10 @@ class Game(object):
     """ A game is a session that the user plays """
 
     def __init__(self):
+        self.id = ''
         self.simulation = None
         self.runner = None
+        self.num_human_players = 1
         self.cycle = 0
         self.hash_id = ""
         self.user_id_to_agent_map = {}

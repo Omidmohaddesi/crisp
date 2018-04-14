@@ -60,6 +60,7 @@ def find_first_agent_of_type(game, role):
 
     return None
 
+
 @APP.route('/api/create_game', methods=['GET'])
 def new_game():
     """ respond to the request from the client to create a new game """
@@ -68,26 +69,75 @@ def new_game():
     game_id = str(uuid.uuid4())
     # start_week = request.args.get('startWeek')
     role = request.args.get('role')
+    num_human_players = int(request.args.get('numHumanPlayer'))
 
     game_count = len(GAMES)
     game = build_game()
+    game.id = game_id
+    game.num_human_players = num_human_players
     GAMES[game_id] = game
     agent = find_first_agent_of_type(game, role)
     game.user_id_to_agent_map[user_id] = agent
-    print agent
 
     hash_id = HASHIDS.encode(game_count)
     game.hash_id = hash_id
     HASH_ID_TO_GAME_MAP[hash_id] = game
 
     # TODO (Yifan): Fast forward the game to the starting week
-    # TODO (Yifan): Associate the player with a certain game agent
 
     token_payload = {
         'exp': datetime.datetime.utcnow() +
                datetime.timedelta(days=1, seconds=0),
         'iat': datetime.datetime.utcnow(),
         'gameId': game_id,
+        'userId': user_id
+    }
+
+    return str(jwt.encode(token_payload, 'SECRET_KEY'))
+
+
+@APP.route('/api/get_game_hash_id', methods=['GET'])
+def get_game_hash_id():
+    token = request.args.get('token')
+    game, _ = get_game_and_agent_from_token(token)
+    return game.hash_id
+
+
+@APP.route('/api/is_all_human_player_joined', methods=['GET'])
+def is_all_human_player_joined():
+    """This function returns true if all the human players in a game joined the game"""
+
+    token = request.args.get('token')
+    game, _ = get_game_and_agent_from_token(token)
+
+    if game.num_human_players == len(game.user_id_to_agent_map):
+        return 'true'
+
+    return 'false'
+
+@APP.route('/api/join_game', methods=['GET'])
+def join_game():
+    """ This allows a player to join a game """
+
+    hash_id = request.args.get('hashId')
+    role = request.args.get('role')
+
+    game = HASH_ID_TO_GAME_MAP[hash_id]
+    if game is None:
+        abort(404)
+
+    agent = find_first_agent_of_type(game, role)
+    if agent is None:
+        abort(400)
+
+    user_id = str(uuid.uuid4())
+    game.user_id_to_agent_map[user_id] = agent
+
+    token_payload = {
+        'exp': datetime.datetime.utcnow() +
+               datetime.timedelta(days=1, seconds=0),
+        'iat': datetime.datetime.utcnow(),
+        'gameId': game.id,
         'userId': user_id
     }
 
@@ -108,7 +158,10 @@ def get_agent_or_401(game, user_id):
     return agent
 
 def get_game_and_agent_from_token(token):
-    """ Return the game and agent from the token string """
+    """ Return the game and agent from the token string
+
+    :rtype (Game, Agent)
+    """
     token_payload = jwt.decode(token, 'SECRET_KEY')
 
     game_id = token_payload['gameId']
@@ -125,7 +178,6 @@ def get_game_param():
     """ respond the game parameter value to the client """
 
     token = request.args.get('token')
-    print token
     game, agent = get_game_and_agent_from_token(token)
 
     param = request.args.get('paramName')
