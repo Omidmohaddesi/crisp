@@ -57,83 +57,51 @@ class Game(object):
             decision.upstream = self.simulation.distributors[1]
             game_decision['agent'].decisions.append(decision)
 
+        elif game_decision['decision_name'] == 'order_from_mn1':
+            decision = OrderDecision()
+            decision.amount = game_decision['decision_value']
+            decision.upstream = self.simulation.manufacturers[0]
+            game_decision['agent'].decisions.append(decision)
+
+        elif game_decision['decision_name'] == 'order_from_mn2':
+            decision = OrderDecision()
+            decision.amount = game_decision['decision_value']
+            decision.upstream = self.simulation.manufacturers[1]
+            game_decision['agent'].decisions.append(decision)
+
         elif game_decision['decision_name'] == 'produce':
             decision = ProduceDecision()
             decision.amount = game_decision['decision_value']
             game_decision['agent'].decisions.append(decision)
 
         elif game_decision['decision_name'] == 'satisfy_ds1':
-            # decisions = self._construct_allocation_decision(
-            #     game_decision['agent'],
-            #     self.simulation.distributors[0],
-            #     game_decision['decision_value'])
-            # game_decision['agent'].decisions.extend(decisions)
             decision = AllocateDecision()
             decision.amount = game_decision['decision_value']
             decision.downstream_node = self.simulation.distributors[0]
             game_decision['agent'].decisions.append(decision)
 
         elif game_decision['decision_name'] == 'satisfy_ds2':
-            # decisions = self._construct_allocation_decision(
-            #     game_decision['agent'],
-            #     self.simulation.distributors[1],
-            #     game_decision['decision_value'])
-            # game_decision['agent'].decisions.extend(decisions)
             decision = AllocateDecision()
             decision.amount = game_decision['decision_value']
             decision.downstream_node = self.simulation.distributors[1]
+            game_decision['agent'].decisions.append(decision)
+
+        elif game_decision['decision_name'] == 'satisfy_hc1':
+            decision = AllocateDecision()
+            decision.amount = game_decision['decision_value']
+            decision.downstream_node = self.simulation.health_centers[0]
+            game_decision['agent'].decisions.append(decision)
+
+        elif game_decision['decision_name'] == 'satisfy_hc2':
+            decision = AllocateDecision()
+            decision.amount = game_decision['decision_value']
+            decision.downstream_node = self.simulation.health_centers[1]
             game_decision['agent'].decisions.append(decision)
 
         else:
             print "Decision type " + game_decision['decision_name'] \
                   + " not supported!\n"
             return
-
-    # def _construct_allocation_decision(self, agent, downstream_node, amount):
-    #     amount_left = amount
-    #     decisions = []
-    #     orders = [order for order in agent.backlog if order.src is downstream_node]
-    #
-    #     if not orders or not agent.inventory:
-    #         return []
-    #
-    #     order_index = 0
-    #     item_index = 0
-    #     order = orders[order_index]
-    #     item = agent.inventory[item_index]
-    #     order_left = order.amount
-    #     item_left = item.amount
-    #
-    #     while amount_left > 0:
-    #
-    #         decision = AllocateDecision()
-    #         decision.order = order
-    #         decision.item = item
-    #         decisions.append(decision)
-    #
-    #         if order_left < item_left:
-    #             if order_left < amount_left:
-    #                 decision.amount = order_left
-    #                 order_index += 1
-    #                 order = orders[order_index]
-    #                 order_left = order.amount
-    #                 amount_left -= decision.amount
-    #             else:
-    #                 decision.amount = amount_left
-    #                 amount_left = 0
-    #         else:
-    #             if item_left < amount_left:
-    #                 decision.amount = item_left
-    #                 item_index += 1
-    #                 item = agent.inventory[item_index]
-    #                 item_left = item.amount
-    #                 amount_left -= decision.amount
-    #             else:
-    #                 decision.amount = amount_left
-    #                 amount_left = 0
-    #
-    #     return decisions
-
 
 def build_game():
     """ instantiate a new game """

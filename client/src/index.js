@@ -34,7 +34,9 @@ function createGame() {
 
             if (role === 'health-center') {
                 startPlayingHealthCenter();
-            } else if (role === 'manufacturer') {
+            } else if (role == 'distributor') {
+                startPlayingDistributor();
+            }else if (role === 'manufacturer') {
                 startPlayingManufacturer();
             }
 
@@ -51,13 +53,18 @@ function startPlayingHealthCenter() {
     retrieveHealthCenterInformation();
 }
 
+function startPlayingDistributor() {
+    $('#distributor-play').show();
+    retrieveDistributorInformation();
+}
+
 function startPlayingManufacturer() {
     $('#manufacturer-play').show();
     retrieveManufacturerInformation();
 }
 
 function retrieveParam(paramName, dom = null, onSuccess = null) {
-    $.ajax({
+    return $.ajax({
         url: '/api/get_game_param', 
         method: 'GET',
         datatype: 'text',
@@ -73,6 +80,18 @@ function retrieveParam(paramName, dom = null, onSuccess = null) {
                 onSuccess(data);
             }
         },
+    });
+}
+
+function uploadDecision(name, value) {
+    return $.ajax({
+        url: '/api/make_decision', 
+        method: 'GET',
+        data: {
+            token,
+            'decisionName': name,
+            'decisionValue': value,
+        }
     });
 }
 
@@ -99,71 +118,19 @@ function retrieveHealthCenterInformation() {
     retrieveParam('received-delivery', $(dom.children()[7]));
 }
 
-function retrieveManufacturerInformation() {
-    const dom = $(
-        `<tr>
-            <td>${cycle}</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>`);
-    $('#manufacturer-data-table').append(dom);
-
-    retrieveParam('in-production', $(dom.children()[1]));
-    retrieveParam('inventory', $(dom.children()[2]));
-    retrieveParam('on-order', $(dom.children()[3]));
-    retrieveParam('backlog-ds1', $(dom.children()[4]));
-    retrieveParam('backlog-ds2', $(dom.children()[5]));
-}
-
 
 function uploadHCDecisions() {
     const satUrgent = $('#hc-satisfy-urgent-input').val();
+    const req1 = uploadDecision('satisfy_urgent', satUrgent);
+
     const satNonUrgent = $('#hc-satisfy-non-urgent-input').val();
+    const req2 = uploadDecision('sat_non_urgent', satNonUrgent);
+
     const orderDS1 = $('#hc-order-from-ds1-input').val();
+    const req3 = uploadDecision('order_from_ds1', orderDS1);
+
     const orderDS2 = $('#hc-order-from-ds2-input').val();
-
-    const req1 = $.ajax({
-        url: '/api/make_decision', 
-        method: 'GET',
-        data: {
-            token,
-            'decisionName': 'satisfy_urgent',
-            'decisionValue': satUrgent
-        }
-    });
-
-    const req2 = $.ajax({
-        url: '/api/make_decision', 
-        method: 'GET',
-        data: {
-            token,
-            'decisionName': 'satisfy_non_urgent',
-            'decisionValue': satNonUrgent
-        }
-    });
-
-    const req3 = $.ajax({
-        url: '/api/make_decision', 
-        method: 'GET',
-        data: {
-            token,
-            'decisionName': 'order_from_ds1',
-            'decisionValue': orderDS1
-        }
-    });
-
-    const req4 = $.ajax({
-        url: '/api/make_decision', 
-        method: 'GET',
-        data: {
-            token,
-            'decisionName': 'order_from_ds2',
-            'decisionValue': orderDS2
-        }
-    });
+    const req4 = uploadDecision('order_from_ds2', orderDS2);
 
     return req1, req2, req3, req4;
 }
@@ -184,41 +151,36 @@ function hcNextPeriod() {
     });
 }
 
+function retrieveManufacturerInformation() {
+    const dom = $(
+        `<tr>
+            <td>${cycle}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>`);
+    $('#manufacturer-data-table').append(dom);
+
+    retrieveParam('in-production', $(dom.children()[1]));
+    retrieveParam('inventory', $(dom.children()[2]));
+    retrieveParam('on-order', $(dom.children()[3]));
+    retrieveParam('backlog-ds1', $(dom.children()[4]));
+    retrieveParam('backlog-ds2', $(dom.children()[5]));
+}
+
+
+
 function uploadMNDecisions() {
     const produce = $('#mn-produce').val();
+    const req1 = uploadDecision('produce', produce);
+
     const satisfyDS1 = $('#mn-satisfy-ds1').val();
+    const req2 = uploadDecision('satidfy_ds1', satisfyDS1);
+
     const satisfyDS2 = $('#mn-satisfy-ds2').val();
-
-    const req1 = $.ajax({
-        url: '/api/make_decision', 
-        method: 'GET',
-        data: {
-            token,
-            'decisionName': 'produce',
-            'decisionValue': produce,
-        }
-    });
-
-    const req2 = $.ajax({
-        url: '/api/make_decision', 
-        method: 'GET',
-        data: {
-            token,
-            'decisionName': 'satisfy_ds1',
-            'decisionValue': satisfyDS1
-        }
-    });
-
-
-    const req3 = $.ajax({
-        url: '/api/make_decision', 
-        method: 'GET',
-        data: {
-            token,
-            'decisionName': 'satisfy_ds2',
-            'decisionValue': satisfyDS2
-        }
-    });
+    const req3 = uploadDecision('satidfy_ds2', satisfyDS2);
 
     return req1, req2, req3;
 }
@@ -241,9 +203,62 @@ function mnNextPeriod() {
 
 }
 
+function retrieveDistributorInformation() {
+    const dom = $(
+        `<tr>
+            <td>${cycle}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>`);
+    $('#distributor-data-table').append(dom);
+
+    retrieveParam('inventory', $(dom.children()[1]));
+    retrieveParam('on-order', $(dom.children()[2]));
+    retrieveParam('backlog-hc1', $(dom.children()[3]));
+    retrieveParam('backlog-hc2', $(dom.children()[4]));
+}
+
+
+
+function uploadDSDecisions() {
+    const satisfyHC1 = $('#ds-satisfy-hc1').val();
+    const req1 =uploadDecision('satisfy_hc1', satisfyHC1);
+    const satisfyHC2 = $('#ds-satisfy-hc2').val();
+    const req2 =uploadDecision('satisfy_hc2', satisfyHC2);
+    const orderMN1 = $('#ds-order-mn1').val();
+    const req3 =uploadDecision('order_from_mn1', orderMN1);
+    const orderMN2 = $('#ds-order-mn2').val();
+    const req4 =uploadDecision('order_from_mn2', orderMN2);
+
+    return req1, req2, req3, req4;
+}
+
+
+function dsNextPeriod() {
+    $.when(uploadDSDecisions()).then( () => {
+        $.ajax({
+            url: '/api/next_period', 
+            method: 'GET',
+            data: {
+                token,
+            },
+            success: () => {
+                cycle++;
+                retrieveDistributorInformation();
+            }
+        });
+    });
+
+}
+
+
+
 $('#create-game-dialog').hide();
 $('#join-game-dialog').hide();
 $('#health-center-play').hide();
+$('#distributor-play').hide();
 $('#manufacturer-play').hide();
 $('#create-game-button').click(() => showCreateGameDialog());
 $('#join-game-button').click(() => showJoinGameDialog());
@@ -255,3 +270,4 @@ $('#num-human-player-slide').change((e) => {
 });
 $('#hc-next-period-button').click(() => hcNextPeriod());
 $('#mn-next-period-button').click(() => mnNextPeriod());
+$('#ds-next-period-button').click(() => dsNextPeriod());

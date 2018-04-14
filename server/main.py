@@ -176,6 +176,18 @@ def get_game_param():
             if order.src == game.simulation.distributors[1]:
                 value += order.amount
 
+    elif param == 'backlog-hc1':
+        value = 0
+        for order in agent.backlog:
+            if order.src == game.simulation.health_centers[0]:
+                value += order.amount
+
+    elif param == 'backlog-hc2':
+        value = 0
+        for order in agent.backlog:
+            if order.src == game.simulation.health_centers[1]:
+                value += order.amount
+
     else:
         print "Unsupported parameter type " + param
         abort(400)
@@ -230,6 +242,8 @@ def make_decision():
 
     decision_name = request.args.get('decisionName')
     decision_value = request.args.get('decisionValue')
+    if decision_value is None:
+        decision_value = 0
 
     decision = {
         'agent': agent,
