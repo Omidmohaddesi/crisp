@@ -17,10 +17,10 @@ class Game(object):
         self.simulation = None
         self.runner = None
         self.num_human_players = 1
-        self.cycle = 0
         self.hash_id = ""
         self.user_id_to_agent_map = {}
         self.decisions = []
+        self.done_with_current_cycle = []
 
         self.data_columns = ['time', 'agent', 'item', 'value', 'unit']
         self.data = pd.DataFrame(columns=self.data_columns)
@@ -114,6 +114,5 @@ def build_game():
     game.runner = runner
     runner._update_patient(0)
     runner._update_agents(0)
-    game.cycle = 0
 
     return game

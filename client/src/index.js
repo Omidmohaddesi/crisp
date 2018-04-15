@@ -164,6 +164,31 @@ function uploadDecision(name, value) {
     });
 }
 
+function checkIfServerMovedToNextCycle(onDone) {
+    $.ajax({
+        url: '/api/get_game_param', 
+        method: 'GET',
+        data: {
+            token,
+            paramName: 'cycle',
+        },
+        datatype: 'text',
+        success: (data) => {
+            const serverCycle = parseInt(data);
+            if (serverCycle === cycle) {
+                setTimeout(checkIfServerMovedToNextCycle, 1000); 
+            } else if (serverCycle == cycle + 1) {
+                cycle = serverCycle;
+                $('input').prop('disabled', false);
+                if (onDone) {
+                    onDone();
+                }
+            }
+        },
+    });
+
+}
+
 function retrieveHealthCenterInformation() {
     const dom = $(
         `<tr>
@@ -205,6 +230,7 @@ function uploadHCDecisions() {
 }
 
 function hcNextPeriod() {
+    $('input').prop('disabled', true);
     $.when(uploadHCDecisions()).then( () => {
         $.ajax({
             url: '/api/next_period', 
@@ -213,8 +239,8 @@ function hcNextPeriod() {
                 token,
             },
             success: () => {
-                cycle++;
-                retrieveHealthCenterInformation();
+                checkIfServerMovedToNextCycle(
+                    retrieveHealthCenterInformation());
             }
         });
     });
@@ -256,6 +282,7 @@ function uploadMNDecisions() {
 
 
 function mnNextPeriod() {
+    $('input').prop('disabled', true);
     $.when(uploadMNDecisions()).then( () => {
         $.ajax({
             url: '/api/next_period', 
@@ -264,8 +291,8 @@ function mnNextPeriod() {
                 token,
             },
             success: () => {
-                cycle++;
-                retrieveManufacturerInformation();
+                checkIfServerMovedToNextCycle(
+                    retrieveManufacturerInformation);
             }
         });
     });
@@ -306,6 +333,7 @@ function uploadDSDecisions() {
 
 
 function dsNextPeriod() {
+    $('input').prop('disabled', true);
     $.when(uploadDSDecisions()).then( () => {
         $.ajax({
             url: '/api/next_period', 
@@ -314,15 +342,13 @@ function dsNextPeriod() {
                 token,
             },
             success: () => {
-                cycle++;
-                retrieveDistributorInformation();
+                checkIfServerMovedToNextCycle(
+                    retrieveDistributorInformation);
             }
         });
     });
 
 }
-
-
 
 $('#create-game-dialog').hide();
 $('#join-game-dialog').hide();

@@ -181,7 +181,10 @@ def get_game_param():
     game, agent = get_game_and_agent_from_token(token)
 
     param = request.args.get('paramName')
-    if param == 'inventory':
+    if param == 'cycle':
+        value = game.simulation.now
+
+    elif param == 'inventory':
         value = agent.inventory_level()
 
     elif param == "urgent":
@@ -197,20 +200,20 @@ def get_game_param():
     elif param == "lost-urgent":
         if not isinstance(agent, agents.HealthCenter):
             abort(400)
-        history_item = agent.get_history_item(game.cycle)
+        history_item = agent.get_history_item(game.simulation.now)
         value = history_item['patient_lost'][0]
 
     elif param == "lost-non-urgent":
         if not isinstance(agent, agents.HealthCenter):
             abort(400)
-        history_item = agent.get_history_item(game.cycle)
+        history_item = agent.get_history_item(game.simulation.now)
         value = history_item['patient_lost'][1]
 
     elif param == "on-order":
         value = sum(order.amount for order in agent.on_order)
 
     elif param == "received-delivery":
-        history_item = agent.get_history_item(game.cycle)
+        history_item = agent.get_history_item(game.simulation.now)
         value = sum(d['item'].amount for d in history_item['delivery'])
 
     elif param == "in-production":
@@ -329,33 +332,32 @@ def next_cycle():
     """ respond the request of moving the simulation to the next cycle. """
 
     token = request.args.get('token')
-    game, _ = get_game_and_agent_from_token(token)
+    game, agent = get_game_and_agent_from_token(token)
 
-    # game.get_current_history_item(game, now=1)
+    game.done_with_current_cycle.append(agent)
+    if (len(game.done_with_current_cycle) == game.num_human_players):
+        game.done_with_current_cycle = []
+        do_next_cycle(game)
 
-    # game.runner.next_cycle()
+    return str(game.simulation.now)
 
-    game.runner._make_decision(game.cycle)
+def do_next_cycle(game):
+    """ Update a game to the next cycle """
+    game.runner._make_decision(game.simulation.now)
     remove_human_controlled_agents_decisions(game)
     game.parse_decisions()
-    game.runner._apply_decision(game.cycle)
+    game.runner._apply_decision(game.simulation.now)
 
     # try:
     #     draw_figures(game)
     # except Exception as e:
     #     print e
 
-    game.cycle = game.cycle + 1
     game.simulation.now += 1
-    game.runner._update_patient(game.cycle)
-    game.runner._update_agents(game.cycle)
-    game.runner._update_network(game.cycle)
-    game.runner._exogenous_event(game.cycle)
-
-    week = game.simulation.now
-
-
-    return str(week)
+    game.runner._update_patient(game.simulation.now)
+    game.runner._update_agents(game.simulation.now)
+    game.runner._update_network(game.simulation.now)
+    game.runner._exogenous_event(game.simulation.now)
 
 
 def draw_figures(game):
