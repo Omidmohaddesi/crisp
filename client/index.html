@@ -35,10 +35,9 @@
         <label>Manufacturer</label>
       </div>
 
-      <div id="waiting-for-others-to-join"></div>
-
       <br/>
       <button id="create-game-ok-button" type="button">Ok</botton>
+
     </form>
   </div>
 
@@ -46,10 +45,27 @@
     <h2>Join Game</h2>
   
     <label>Game ID</label>
-    <input type="text"/>
+    <input id="join-game-hash-id" type="text"/>
     <br/>
 
+    <h4>Role</h4>
+    <div>
+      <input type="radio" name="join-role" value="health-center" checked>
+      <label>Health Center</label>
+      <input type="radio" name="join-role" value="distributor">
+      <label>Distributor</label>
+      <input type="radio" name="join-role" value="manufacturer">
+      <label>Manufacturer</label>
+    </div>
+
     <button id="join-game-ok-button" type="button">Ok</botton>
+  </div>
+
+  <div id="wait-for-other-players">
+    <div>Please let other players to use this id to join your game:
+      <span id="game_hash_id"></span>
+    </div>
+    <img src="images/wait.gif"></img>
   </div>
 
   <div id="health-center-play">

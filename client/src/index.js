@@ -1,5 +1,6 @@
 let token = '';
 let cycle = 0;
+let role = '';
 
 function showCreateGameDialog() {
     $('#create-game-dialog').show();
@@ -14,7 +15,7 @@ function showJoinGameDialog() {
 
 function createGame() {
     const numHumanPlayer = $('#num-human-player-slide').val();
-    const role = $('input[name=role]:checked').val(); 
+    role = $('input[name=role]:checked').val(); 
 
     const req = {
         numHumanPlayer,
@@ -32,20 +33,88 @@ function createGame() {
             
             $('#create-game-dialog').hide();
 
-            if (role === 'health-center') {
-                startPlayingHealthCenter();
-            } else if (role == 'distributor') {
-                startPlayingDistributor();
-            }else if (role === 'manufacturer') {
-                startPlayingManufacturer();
+            if (numHumanPlayer > 1) {
+                showWaitForOtherPlayerDialog();
+            } else {
+                if (role === 'health-center') {
+                    startPlayingHealthCenter();
+                } else if (role == 'distributor') {
+                    startPlayingDistributor();
+                }else if (role === 'manufacturer') {
+                    startPlayingManufacturer();
+                }
             }
+
+            getGameHashID();
 
         }
     });
 }
 
+function checkIfAllOtherPlayersJoined() {
+    $.ajax({
+        url: '/api/is_all_human_player_joined',
+        method: 'GET',
+        data: {
+            token: token,
+        },
+        datatype: 'text',
+        success: (data) => {
+            if (data === 'true') {
+                $('#wait-for-other-players').hide();
+                if (role === 'health-center') {
+                    startPlayingHealthCenter();
+                } else if (role == 'distributor') {
+                    startPlayingDistributor();
+                }else if (role === 'manufacturer') {
+                    startPlayingManufacturer();
+                }
+            } else {
+                setTimeout(checkIfAllOtherPlayersJoined, 1000);
+            }
+        }
+    });
+}
+
+function showWaitForOtherPlayerDialog() {
+    $('#wait-for-other-players').show();
+    checkIfAllOtherPlayersJoined();
+}
+
+function getGameHashID() {
+    $.ajax({
+        url: '/api/get_game_hash_id',
+        method: 'GET',
+        data: {
+            token
+        },
+        datatype: 'text',
+        success: (data) => {
+            $('#game_hash_id').html(data);
+        }
+    });
+}
+
 function joinGame() {
-    //console.error('Not implemented');
+    let hashId = $('#join-game-hash-id').val();
+    role = $('input[name=join-role]:checked').val(); 
+
+    $.ajax({
+        url: '/api/join_game', 
+        method: 'GET',
+        data: {
+            hashId,
+            role,
+        },
+        datatype: 'text',
+        success: (data) => {
+            token = data;
+            $('#join-game-dialog').hide();
+            showWaitForOtherPlayerDialog();
+            $('#game_hash_id').html(hashId);
+        }
+    });
+
 }
 
 function startPlayingHealthCenter() {
@@ -95,6 +164,31 @@ function uploadDecision(name, value) {
     });
 }
 
+function checkIfServerMovedToNextCycle(onDone) {
+    $.ajax({
+        url: '/api/get_game_param', 
+        method: 'GET',
+        data: {
+            token,
+            paramName: 'cycle',
+        },
+        datatype: 'text',
+        success: (data) => {
+            const serverCycle = parseInt(data);
+            if (serverCycle === cycle) {
+                setTimeout(checkIfServerMovedToNextCycle, 1000); 
+            } else if (serverCycle == cycle + 1) {
+                cycle = serverCycle;
+                $('input').prop('disabled', false);
+                if (onDone) {
+                    onDone();
+                }
+            }
+        },
+    });
+
+}
+
 function retrieveHealthCenterInformation() {
     const dom = $(
         `<tr>
@@ -136,6 +230,7 @@ function uploadHCDecisions() {
 }
 
 function hcNextPeriod() {
+    $('input').prop('disabled', true);
     $.when(uploadHCDecisions()).then( () => {
         $.ajax({
             url: '/api/next_period', 
@@ -144,8 +239,8 @@ function hcNextPeriod() {
                 token,
             },
             success: () => {
-                cycle++;
-                retrieveHealthCenterInformation();
+                checkIfServerMovedToNextCycle(
+                    retrieveHealthCenterInformation());
             }
         });
     });
@@ -187,6 +282,7 @@ function uploadMNDecisions() {
 
 
 function mnNextPeriod() {
+    $('input').prop('disabled', true);
     $.when(uploadMNDecisions()).then( () => {
         $.ajax({
             url: '/api/next_period', 
@@ -195,8 +291,8 @@ function mnNextPeriod() {
                 token,
             },
             success: () => {
-                cycle++;
-                retrieveManufacturerInformation();
+                checkIfServerMovedToNextCycle(
+                    retrieveManufacturerInformation);
             }
         });
     });
@@ -237,6 +333,7 @@ function uploadDSDecisions() {
 
 
 function dsNextPeriod() {
+    $('input').prop('disabled', true);
     $.when(uploadDSDecisions()).then( () => {
         $.ajax({
             url: '/api/next_period', 
@@ -245,18 +342,17 @@ function dsNextPeriod() {
                 token,
             },
             success: () => {
-                cycle++;
-                retrieveDistributorInformation();
+                checkIfServerMovedToNextCycle(
+                    retrieveDistributorInformation);
             }
         });
     });
 
 }
 
-
-
 $('#create-game-dialog').hide();
 $('#join-game-dialog').hide();
+$('#wait-for-other-players').hide();
 $('#health-center-play').hide();
 $('#distributor-play').hide();
 $('#manufacturer-play').hide();
