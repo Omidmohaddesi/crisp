@@ -2,7 +2,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from game import build_game
+# from game import build_game
 
 
 def graph(game, chart_path, user_id):

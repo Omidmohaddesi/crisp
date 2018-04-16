@@ -40,6 +40,7 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
     return response
 
+
 def find_first_agent_of_type(game, role):
     """ given a role, find the first agent of a certain role that is not
         controlled by a player user.
@@ -115,6 +116,7 @@ def is_all_human_player_joined():
 
     return 'false'
 
+
 @APP.route('/api/join_game', methods=['GET'])
 def join_game():
     """ This allows a player to join a game """
@@ -143,6 +145,7 @@ def join_game():
 
     return str(jwt.encode(token_payload, 'SECRET_KEY'))
 
+
 def get_game_or_401(game_id):
     """ return a game by the game_id or return 401 error"""
     game = GAMES[game_id]
@@ -150,12 +153,14 @@ def get_game_or_401(game_id):
         abort(401)
     return game
 
+
 def get_agent_or_401(game, user_id):
     """ return a agent by the user_id in a game or return 401 error"""
     agent = game.user_id_to_agent_map[user_id]
     if agent is None:
         abort(401)
     return agent
+
 
 def get_game_and_agent_from_token(token):
     """ Return the game and agent from the token string
@@ -249,6 +254,7 @@ def get_game_param():
 
     return str(value)
 
+
 @APP.route('/api/get_game_history_param', methods=['GET'])
 def get_game_history_param():
     """ respond the request of querying the value of a simulation parameter. """
@@ -322,10 +328,12 @@ def make_decision():
 
 #     return players[player_id]
 
+
 def remove_human_controlled_agents_decisions(game):
     for user_id in game.user_id_to_agent_map:
         agent = game.user_id_to_agent_map[user_id]
         agent.decisions = []
+
 
 @APP.route('/api/next_period', methods=['GET', 'POST'])
 def next_cycle():
@@ -340,6 +348,7 @@ def next_cycle():
         do_next_cycle(game)
 
     return str(game.simulation.now)
+
 
 def do_next_cycle(game):
     """ Update a game to the next cycle """

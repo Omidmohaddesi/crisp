@@ -105,6 +105,7 @@ class Game(object):
                   + " not supported!\n"
             return
 
+
 def build_game():
     """ instantiate a new game """
     simulation, runner = simulation_builder.build_simulation()
