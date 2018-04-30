@@ -8,6 +8,7 @@ import jwt
 from flask import Flask, send_from_directory
 from flask import request
 from flask import abort
+from flask_restful import reqparse
 from hashids import Hashids
 import pandas as pd
 import matplotlib
@@ -19,13 +20,16 @@ from server.game import build_game
 from server.graph import graph
 import simulator.agent as agents
 
-PATH = os.path.join(os.path.abspath('..'), 'client/')
+PATH = os.path.join(os.path.abspath('..'), 'client/charts')
 
 APP = Flask(__name__, static_url_path='', static_folder=PATH)
 HASHIDS = Hashids(salt="Drug Shortage")
 
 GAMES = {}
 HASH_ID_TO_GAME_MAP = {}
+
+parser = reqparse.RequestParser()
+parser.add_argument('task')
 
 
 @APP.after_request
@@ -100,7 +104,8 @@ def new_game():
 @APP.route('/api/get_game_hash_id', methods=['GET'])
 def get_game_hash_id():
     token = request.args.get('token')
-    game, _ = get_game_and_agent_from_token(token)
+    # game, _ = get_game_and_agent_from_token(token)
+    game = get_game_and_agent_from_token(token)['game']
     return game.hash_id
 
 
@@ -109,7 +114,8 @@ def is_all_human_player_joined():
     """This function returns true if all the human players in a game joined the game"""
 
     token = request.args.get('token')
-    game, _ = get_game_and_agent_from_token(token)
+    # game, _ = get_game_and_agent_from_token(token)
+    game = get_game_and_agent_from_token(token)['game']
 
     if game.num_human_players == len(game.user_id_to_agent_map):
         return 'true'
@@ -136,8 +142,7 @@ def join_game():
     game.user_id_to_agent_map[user_id] = agent
 
     token_payload = {
-        'exp': datetime.datetime.utcnow() +
-               datetime.timedelta(days=1, seconds=0),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=0),
         'iat': datetime.datetime.utcnow(),
         'gameId': game.id,
         'userId': user_id
@@ -175,7 +180,8 @@ def get_game_and_agent_from_token(token):
     user_id = token_payload['userId']
     agent = get_agent_or_401(game, user_id)
 
-    return (game, agent)
+    # return (game, agent)
+    return {'game': game, 'agent': agent, 'userId': user_id}
 
 
 @APP.route('/api/get_game_param', methods=['GET'])
@@ -183,7 +189,9 @@ def get_game_param():
     """ respond the game parameter value to the client """
 
     token = request.args.get('token')
-    game, agent = get_game_and_agent_from_token(token)
+    # game, agent = get_game_and_agent_from_token(token)
+    game = get_game_and_agent_from_token(token)['game']
+    agent = get_game_and_agent_from_token(token)['agent']
 
     param = request.args.get('paramName')
     if param == 'cycle':
@@ -217,9 +225,29 @@ def get_game_param():
     elif param == "on-order":
         value = sum(order.amount for order in agent.on_order)
 
+    elif param == 'on-order-ds1':
+        value = sum(agent.on_order[j].amount for j in range(0, len(agent.on_order))
+                    if agent.on_order[j].dst.id == 2)
+
+    elif param == 'on-order-ds2':
+        value = sum(agent.on_order[j].amount for j in range(0, len(agent.on_order))
+                    if agent.on_order[j].dst.id == 3)
+
     elif param == "received-delivery":
         history_item = agent.get_history_item(game.simulation.now)
         value = sum(d['item'].amount for d in history_item['delivery'])
+
+    elif param == "received-delivery-ds1":
+        history_item = agent.get_history_item(game.simulation.now)
+        value = sum(history_item['delivery'][j]["item"].amount
+                    for j in range(0, len(history_item['delivery']))
+                    if history_item['delivery'][j]["src"].id == 2)
+
+    elif param == "received-delivery-ds2":
+        history_item = agent.get_history_item(game.simulation.now)
+        value = sum(history_item['delivery'][j]["item"].amount
+                    for j in range(0, len(history_item['delivery']))
+                    if history_item['delivery'][j]["src"].id == 3)
 
     elif param == "in-production":
         value = sum([item.amount for item in agent.in_production])
@@ -264,7 +292,8 @@ def get_game_history_param():
     agent_id = int(request.args.get('agentId'))
     param = request.args.get('paramName')
 
-    game, _ = get_game_and_agent_from_token(token)
+    # game, _ = get_game_and_agent_from_token(token)
+    game = get_game_and_agent_from_token(token)['game']
 
     agent = game.simulation.agents[agent_id]
     if agent is None:
@@ -286,7 +315,7 @@ def get_game_history_param():
                 abort(400)
             value = history['patient'][1]
         else:
-            raise ValueError("Not supported paramter type")
+            raise ValueError("Not supported parameter type")
     except ValueError as value_error:
         print value_error
         abort(400)
@@ -294,15 +323,22 @@ def get_game_history_param():
     return str(value)
 
 
-@APP.route('/api/make_decision', methods=['GET'])
+@APP.route('/api/make_decision', methods=['GET', 'PUT', 'POST'])
 def make_decision():
     """ respond the request of posting the value of a decision parameters. """
 
-    token = request.args.get('token')
-    game, agent = get_game_and_agent_from_token(token)
+    args = parser.parse_args()
+    task = args['task']     # StudyCrafter only works with "task" right now for POST call and doesn't
+    # accept any other argument
+    token, decision_name, decision_value = task.split(";")
 
-    decision_name = request.args.get('decisionName')
-    decision_value = request.args.get('decisionValue')
+    # token = request.args.get('token')
+    # game, agent = get_game_and_agent_from_token(token)
+    game = get_game_and_agent_from_token(token)['game']
+    agent = get_game_and_agent_from_token(token)['agent']
+
+    # decision_name = request.args.get('decisionName')
+    # decision_value = request.args.get('decisionValue')
     if decision_value is None:
         decision_value = 0
 
@@ -340,10 +376,12 @@ def next_cycle():
     """ respond the request of moving the simulation to the next cycle. """
 
     token = request.args.get('token')
-    game, agent = get_game_and_agent_from_token(token)
+    # game, agent = get_game_and_agent_from_token(token)
+    game = get_game_and_agent_from_token(token)['game']
+    agent = get_game_and_agent_from_token(token)['agent']
 
     game.done_with_current_cycle.append(agent)
-    if (len(game.done_with_current_cycle) == game.num_human_players):
+    if len(game.done_with_current_cycle) == game.num_human_players:
         game.done_with_current_cycle = []
         do_next_cycle(game)
 
@@ -369,55 +407,84 @@ def do_next_cycle(game):
     game.runner._exogenous_event(game.simulation.now)
 
 
-def draw_figures(game):
+def append_data_for_health_center_graph(game, agent):
+
+    now = game.simulation.now
+    name = agent.name()
+    history = agent.get_history_item(now)
+    game.data = game.data.append(pd.DataFrame([
+        [now, name, 'urgent', agent.urgent, ''],
+        [now, name, 'non_urgent', agent.non_urgent, ''],
+        [now, name, 'order', sum(order.amount for order in history['order']), ''],
+        [now, name, 'order_ds1', sum(order.amount for order in history['order'] if order.dst.id == 2), ''],
+        [now, name, 'order_ds2', sum(order.amount for order in history['order'] if order.dst.id == 3), ''],
+        [now, name, 'on_order_ds1', sum(agent.on_order[j].amount for j in range(0, len(agent.on_order))
+                                        if agent.on_order[j].dst.id == 2), ''],
+        [now, name, 'on_order_ds2', sum(agent.on_order[j].amount for j in range(0, len(agent.on_order))
+                                        if agent.on_order[j].dst.id == 3), ''],
+        [now, name, 'rec_ds1', sum(history['delivery'][j]["item"].amount
+                                   for j in range(0, len(history['delivery']))
+                                   if history['delivery'][j]["src"].id == 2), ''],
+        [now, name, 'rec_ds2', sum(history['delivery'][j]["item"].amount
+                                   for j in range(0, len(history['delivery']))
+                                   if history['delivery'][j]["src"].id == 3), '']
+    ], columns=game.data_columns))
+
+
+def draw_figures(game, user_id):
 
     for agent in game.simulation.agents:
         game.data = game.data.append(
             pd.DataFrame(agent.collect_data(game.simulation.now), columns=game.data_columns))
+        if agent.agent_type == "hc":
+            append_data_for_health_center_graph(game, agent)
     game.data.reset_index()
     print game.data.to_string()
 
+    if game.simulation.now > 9:
+        graph(game.data, PATH, user_id=user_id)
 
-    hc1_data = game.data[game.data['agent'] == 'hc_4']
-    plt.figure()
-    sns.tsplot(hc1_data, time='time', condition='item', value='value',
-               unit='unit').set_title('Health Center 1')
-    plt.savefig('hc1.png', dpi=600)
-
-    hc2_data = game.data[game.data['agent'] == 'hc_5']
-    plt.figure()
-    sns.tsplot(hc2_data, time='time', condition='item', value='value',
-               unit='unit').set_title('Health Center 2')
-    plt.savefig('hc2.png', dpi=600)
-
-    ds1_data = game.data[game.data['agent'] == 'ds_2']
-    plt.figure()
-    sns.tsplot(ds1_data, time='time', condition='item',
-               value='value', unit='unit').set_title('Distributor 1')
-    plt.savefig('ds1.png', dpi=600)
-
-    ds2_data = game.data[game.data['agent'] == 'ds_3']
-    plt.figure()
-    sns.tsplot(ds2_data, time='time', condition='item',
-               value='value', unit='unit').set_title('Distributor 2')
-    plt.savefig('ds2.png', dpi=600)
-
-    mn1_data = game.data[game.data['agent'] == 'mn_0']
-    plt.figure()
-    sns.tsplot(mn1_data, time='time', condition='item',
-               value='value', unit='unit').set_title('Manufacture 1')
-    plt.savefig('mn1.png', dpi=600)
-
-    mn2_data = game.data[game.data['agent'] == 'mn_1']
-    plt.figure()
-    sns.tsplot(mn2_data, time='time', condition='item',
-               value='value', unit='unit').set_title('Manufacture 2')
-    plt.savefig('mn2.png', dpi=600)
-    inv_data = game.data[game.data['item'] == 'inventory']
-    plt.figure()
-    sns.tsplot(inv_data, time='time', condition='agent',
-               value='value', unit='unit').set_title('Inventory')
-    plt.savefig('inventory.png', dpi=600)
+    # if game.simulation.now > 10:
+    #     hc1_data = game.data[game.data['agent'] == 'hc_4']
+    #     plt.figure()
+    #     sns.tsplot(hc1_data, time='time', condition='item', value='value',
+    #                unit='unit').set_title('Health Center 1')
+    #     plt.savefig(os.path.join(PATH, 'hc1.png'), dpi=600)
+    #
+    #     hc2_data = game.data[game.data['agent'] == 'hc_5']
+    #     plt.figure()
+    #     sns.tsplot(hc2_data, time='time', condition='item', value='value',
+    #                unit='unit').set_title('Health Center 2')
+    #     plt.savefig(os.path.join(PATH, 'hc2.png'), dpi=600)
+    #
+    #     ds1_data = game.data[game.data['agent'] == 'ds_2']
+    #     plt.figure()
+    #     sns.tsplot(ds1_data, time='time', condition='item',
+    #                value='value', unit='unit').set_title('Distributor 1')
+    #     plt.savefig(os.path.join(PATH, 'ds1.png'), dpi=600)
+    #
+    #     ds2_data = game.data[game.data['agent'] == 'ds_3']
+    #     plt.figure()
+    #     sns.tsplot(ds2_data, time='time', condition='item',
+    #                value='value', unit='unit').set_title('Distributor 2')
+    #     plt.savefig(os.path.join(PATH, 'ds2.png'), dpi=600)
+    #
+    #     mn1_data = game.data[game.data['agent'] == 'mn_0']
+    #     plt.figure()
+    #     sns.tsplot(mn1_data, time='time', condition='item',
+    #                value='value', unit='unit').set_title('Manufacture 1')
+    #     plt.savefig(os.path.join(PATH, 'mn1.png'), dpi=600)
+    #
+    #     mn2_data = game.data[game.data['agent'] == 'mn_1']
+    #     plt.figure()
+    #     sns.tsplot(mn2_data, time='time', condition='item',
+    #                value='value', unit='unit').set_title('Manufacture 2')
+    #     plt.savefig(os.path.join(PATH, 'mn2.png'), dpi=600)
+    #     inv_data = game.data[game.data['item'] == 'inventory']
+    #     plt.figure()
+    #     sns.tsplot(inv_data, time='time', condition='agent',
+    #                value='value', unit='unit').set_title('Inventory')
+    #     plt.savefig(os.path.join(PATH, 'inventory.png'), dpi=600)
 
 
 @APP.route("/api/update_graphs", methods=['GET'])
@@ -425,19 +492,26 @@ def update():
     """ updates graphs' images for the gamettes for each player. """
 
     token = request.args.get('token')
-    token_payload = jwt.decode(token, 'SECRET_KEY')
+    # game, agent = get_game_and_agent_from_token(token)
+    game = get_game_and_agent_from_token(token)['game']
+    user_id = get_game_and_agent_from_token(token)['userId']
 
-    game_id = token_payload['game_id']
-    game = GAMES[game_id]
+    draw_figures(game, user_id)
 
-    user_id = token_payload['user_id']
-
-    graph(game, PATH, user_id=user_id)
+    # token = request.args.get('token')
+    # token_payload = jwt.decode(token, 'SECRET_KEY')
+    #
+    # game_id = token_payload['game_id']
+    # game = GAMES[game_id]
+    #
+    # user_id = token_payload['user_id']
+    #
+    # graph(game, PATH, user_id=user_id)
 
     return "updated!"
 
 
-@APP.route('/Charts/<filename>')
+@APP.route('/charts/<filename>')
 def send_image(filename):
     return send_from_directory(APP.static_folder, filename)
 
