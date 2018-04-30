@@ -214,6 +214,20 @@ def get_game_param():
         history_item = agent.get_history_item(game.simulation.now)
         value = history_item['patient_lost'][1]
 
+    elif param == "order-to-ds1":
+        history_item = agent.get_history_item(game.simulation.now - 1)
+        value = 0
+        for order in history_item['order']:
+            if order.dst == game.simulation.distributors[0]:
+                value += order.amount
+
+    elif param == "order-to-ds2":
+        history_item = agent.get_history_item(game.simulation.now - 1)
+        value = 0
+        for order in history_item['order']:
+            if order.dst == game.simulation.distributors[1]:
+                value += order.amount
+
     elif param == "on-order":
         value = sum(order.amount for order in agent.on_order)
 
