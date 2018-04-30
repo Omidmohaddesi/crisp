@@ -200,6 +200,8 @@ function retrieveHealthCenterInformation() {
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
+            <td></td>
         </tr>`);
     $('#health-center-data-table').append(dom);
 
@@ -210,6 +212,8 @@ function retrieveHealthCenterInformation() {
     retrieveParam('lost-non-urgent', $(dom.children()[5]));
     retrieveParam('on-order', $(dom.children()[6]));
     retrieveParam('received-delivery', $(dom.children()[7]));
+    retrieveParam('order-to-ds1', $(dom.children()[8]));
+    retrieveParam('order-to-ds2', $(dom.children()[9]));
 }
 
 
