@@ -367,16 +367,11 @@ def make_decision():
 
     return ''
 
-# @APP.route("/api/get_user_id")
-# def id_generator():
-#     """ respond the request from the client to generate a unique user_id """
 
-#     user_id = str(uuid.uuid4())
-#     player_id = int(list(players)[-1].lstrip('id')) + 1
-#     player_id = 'id%i' % player_id
-#     players[player_id] = user_id
-
-#     return players[player_id]
+@APP.route("/api/get_user_id", methods=['GET', 'POST'])
+def get_user():
+    token = request.args.get('token')
+    return get_game_and_agent_from_token(token)['userId']
 
 
 def remove_human_controlled_agents_decisions(game):
@@ -426,12 +421,15 @@ def append_data_for_health_center_graph(game, agent):
     now = game.simulation.now
     name = agent.name()
     history = agent.get_history_item(now)
+    history_p = agent.get_history_item(game.simulation.now - 1)
     game.data = game.data.append(pd.DataFrame([
         [now, name, 'urgent', agent.urgent, ''],
         [now, name, 'non_urgent', agent.non_urgent, ''],
-        [now, name, 'order', sum(order.amount for order in history['order']), ''],
-        [now, name, 'order_ds1', sum(order.amount for order in history['order'] if order.dst.id == 2), ''],
-        [now, name, 'order_ds2', sum(order.amount for order in history['order'] if order.dst.id == 3), ''],
+        [now-1, name, 'order', sum(order.amount for order in history_p['order']), ''],
+        [now-1, name, 'order_ds1', sum(order.amount for order in history_p['order']
+                                       if order.dst == game.simulation.distributors[0]), ''],
+        [now-1, name, 'order_ds2', sum(order.amount for order in history_p['order']
+                                       if order.dst == game.simulation.distributors[1]), ''],
         [now, name, 'on_order_ds1', sum(agent.on_order[j].amount for j in range(0, len(agent.on_order))
                                         if agent.on_order[j].dst.id == 2), ''],
         [now, name, 'on_order_ds2', sum(agent.on_order[j].amount for j in range(0, len(agent.on_order))
@@ -443,9 +441,10 @@ def append_data_for_health_center_graph(game, agent):
                                    for j in range(0, len(history['delivery']))
                                    if history['delivery'][j]["src"].id == 3), '']
     ], columns=game.data_columns))
+    # game.data[game.data['now'] == game.simulation.now - 1] =
 
 
-def draw_figures(game, user_id):
+def draw_figures(game, user_id, agent_name):
 
     for agent in game.simulation.agents:
         game.data = game.data.append(
@@ -456,7 +455,7 @@ def draw_figures(game, user_id):
     print game.data.to_string()
 
     if game.simulation.now > 9:
-        graph(game.data, PATH, user_id=user_id)
+        graph(game.data, PATH, user_id=user_id, agent=agent_name)
 
     # if game.simulation.now > 10:
     #     hc1_data = game.data[game.data['agent'] == 'hc_4']
@@ -509,8 +508,9 @@ def update():
     # game, agent = get_game_and_agent_from_token(token)
     game = get_game_and_agent_from_token(token)['game']
     user_id = get_game_and_agent_from_token(token)['userId']
+    agent = get_game_and_agent_from_token(token)['agent']
 
-    draw_figures(game, user_id)
+    draw_figures(game, user_id, agent.name())
 
     # token = request.args.get('token')
     # token_payload = jwt.decode(token, 'SECRET_KEY')
@@ -525,9 +525,9 @@ def update():
     return "updated!"
 
 
-@APP.route('/charts/<filename>')
-def send_image(filename):
-    return send_from_directory(APP.static_folder, filename)
+@APP.route('/charts/<user_id>/<filename>')
+def send_image(user_id, filename):
+    return send_from_directory(os.path.join(APP.static_folder + "/" + user_id), filename)
 
 
 if __name__ == '__main__':
