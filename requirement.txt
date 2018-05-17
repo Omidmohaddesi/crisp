@@ -1,2 +1,3 @@
 hashids
 pyjwt
+flask_restful

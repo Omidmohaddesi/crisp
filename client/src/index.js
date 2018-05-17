@@ -16,10 +16,12 @@ function showJoinGameDialog() {
 function createGame() {
     const numHumanPlayer = $('#num-human-player-slide').val();
     role = $('input[name=role]:checked').val(); 
+    startCycle = 100
 
     const req = {
         numHumanPlayer,
         role,
+        startCycle,
     };
 
     $.ajax({
