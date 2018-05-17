@@ -352,15 +352,14 @@ def make_decision():
     args = parser.parse_args()
     task = args['task']     # StudyCrafter only works with "task" right now for POST call and doesn't
     # accept any other argument
-    token, decision_name, decision_value = task.split(";")
+    # token, decision_name, decision_value = task.split(";")
 
-    # token = request.args.get('token')
-    # game, agent = get_game_and_agent_from_token(token)
+    token = request.args.get('token')
     game = get_game_and_agent_from_token(token)['game']
     agent = get_game_and_agent_from_token(token)['agent']
 
-    # decision_name = request.args.get('decisionName')
-    # decision_value = request.args.get('decisionValue')
+    decision_name = request.args.get('decisionName')
+    decision_value = request.args.get('decisionValue')
     if decision_value is None:
         decision_value = 0
 

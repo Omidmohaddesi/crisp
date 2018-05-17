@@ -17,6 +17,7 @@ function createGame() {
     const numHumanPlayer = $('#num-human-player-slide').val();
     role = $('input[name=role]:checked').val(); 
     startCycle = 100
+    cycle = startCycle
 
     const req = {
         numHumanPlayer,
@@ -224,7 +225,7 @@ function uploadHCDecisions() {
     const req1 = uploadDecision('satisfy_urgent', satUrgent);
 
     const satNonUrgent = $('#hc-satisfy-non-urgent-input').val();
-    const req2 = uploadDecision('sat_non_urgent', satNonUrgent);
+    const req2 = uploadDecision('satisfy_non_urgent', satNonUrgent);
 
     const orderDS1 = $('#hc-order-from-ds1-input').val();
     const req3 = uploadDecision('order_from_ds1', orderDS1);
