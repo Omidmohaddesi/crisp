@@ -11,6 +11,7 @@ from flask import abort
 from flask_restful import reqparse
 from hashids import Hashids
 import pandas as pd
+from OpenSSL import SSL
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -25,6 +26,10 @@ PATH = os.path.join(os.path.abspath('..'), 'client/charts')
 APP = Flask(__name__, static_url_path='', static_folder=PATH)
 HASHIDS = Hashids(salt="Drug Shortage")
 
+context = SSL.Context(SSL.SSLv23_METHOD)
+cer = os.path.join(os.path.dirname(__file__), 'ssl/cert.pem')
+key = os.path.join(os.path.dirname(__file__), 'ssl/key.pem')
+
 GAMES = {}
 HASH_ID_TO_GAME_MAP = {}
 
@@ -35,9 +40,8 @@ parser.add_argument('task')
 @APP.after_request
 def after_request(response):
     """ after_request """
-    response.headers.add(
-        'Access-Control-Allow-Origin',
-        'http://www.neumadscience.com')
+
+    response.headers.add('Access-Control-Allow-Origin', 'https://studycrafter.com')
     response.headers.add(
         'Access-Control-Allow-Headers',
         'Content-Type,Authorization')
@@ -531,4 +535,5 @@ def send_image(user_id, filename):
 
 
 if __name__ == '__main__':
-    APP.run(host='0.0.0.0', debug=True)
+    context = (cer, key)
+    APP.run(host='0.0.0.0', debug=True, ssl_context=context)
