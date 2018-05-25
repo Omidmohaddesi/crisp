@@ -21,7 +21,7 @@ from server.game import build_game
 from server.graph import graph
 import simulator.agent as agents
 
-PATH = os.path.join(os.path.abspath('..'), 'client/charts')
+PATH = os.path.join(os.path.abspath('..'), 'client/')
 
 APP = Flask(__name__, static_url_path='', static_folder=PATH)
 HASHIDS = Hashids(salt="Drug Shortage")
@@ -76,7 +76,7 @@ def new_game():
 
     user_id = str(uuid.uuid4())
     game_id = str(uuid.uuid4())
-    # start_week = request.args.get('startWeek')
+    start_cycle = int(request.args.get('startCycle'))
     role = request.args.get('role')
     num_human_players = int(request.args.get('numHumanPlayer'))
 
@@ -92,7 +92,7 @@ def new_game():
     game.hash_id = hash_id
     HASH_ID_TO_GAME_MAP[hash_id] = game
 
-    # TODO (Yifan): Fast forward the game to the starting week
+    fast_forward_game(game, start_cycle)
 
     token_payload = {
         'exp': datetime.datetime.utcnow() +
@@ -104,6 +104,14 @@ def new_game():
 
     return str(jwt.encode(token_payload, 'SECRET_KEY'))
 
+def fast_forward_game(game, cycle):
+    """ Let the default decision maker to run the game for a certain number of
+        cyles
+
+        :type game: Game
+    """
+    for i in range(0, cycle):
+        game.runner.next_cycle()
 
 @APP.route('/api/get_game_hash_id', methods=['GET'])
 def get_game_hash_id():
@@ -348,15 +356,14 @@ def make_decision():
     args = parser.parse_args()
     task = args['task']     # StudyCrafter only works with "task" right now for POST call and doesn't
     # accept any other argument
-    token, decision_name, decision_value = task.split(";")
+    # token, decision_name, decision_value = task.split(";")
 
-    # token = request.args.get('token')
-    # game, agent = get_game_and_agent_from_token(token)
+    token = request.args.get('token')
     game = get_game_and_agent_from_token(token)['game']
     agent = get_game_and_agent_from_token(token)['agent']
 
-    # decision_name = request.args.get('decisionName')
-    # decision_value = request.args.get('decisionValue')
+    decision_name = request.args.get('decisionName')
+    decision_value = request.args.get('decisionValue')
     if decision_value is None:
         decision_value = 0
 

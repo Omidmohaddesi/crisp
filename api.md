@@ -21,6 +21,11 @@ GET
     What job does the player wants to play. It can be either manufacturer,
     distributor, or health center.
 
+* startCycle = [integer]
+
+    The number of cycles to fast forward before the human player starts to 
+    play the game.
+
 ### Success Response
 
 #### Code: 200
