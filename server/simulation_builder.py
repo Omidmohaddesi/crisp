@@ -28,7 +28,6 @@ def build_simulation():
     mn2.line_capacity = 20
     mn2.num_active_lines = 20
 
-
     ds1 = agent_builder.build("distributor")
     ds2 = agent_builder.build("distributor")
 
@@ -93,5 +92,3 @@ def build_simulation():
     runner = sim_runner.SimulationRunner(simulation, decision_maker)
 
     return (simulation, runner)
-
-

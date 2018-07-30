@@ -79,7 +79,7 @@ def graph(game_data, chart_path, user_id, agent):
     plt.grid(True, lw=0.5, zorder=0, color='w')
     plt.xticks(np.arange(min(hc1_inv.time.values), max(hc1_inv.time.values) + 1, 1.0))
     # plt.savefig(os.path.join(chart_path + "/inventory_chart_" + user_id + ".png"), bbox_inches='tight')
-    plt.savefig(os.path.join(chart_path + "/" + user_id + "/Inventory_Chart.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(chart_path + "/" + user_id + "/drug_shortage_inventory_chart_1.png"), bbox_inches='tight')
     plt.clf()
 
     '''----------------------------------------PATIENT_HISTORY--------------------------------------------'''
@@ -100,7 +100,7 @@ def graph(game_data, chart_path, user_id, agent):
     plt.margins(y=0.3)
     plt.xticks(np.arange(min(hc1_up.time.values), max(hc1_up.time.values) + 1, 1.0))
     # plt.savefig(os.path.join(chart_path + "/patient_history_" + user_id + ".png"), bbox_inches='tight')
-    plt.savefig(os.path.join(chart_path + "/" + user_id + "/Patient_History.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(chart_path + "/" + user_id + "/drug_shortage_patient_history_1.png"), bbox_inches='tight')
     plt.clf()
 
     '''----------------------------------------DS1_ORDER_HISTORY--------------------------------------------'''
@@ -120,7 +120,7 @@ def graph(game_data, chart_path, user_id, agent):
     plt.margins(y=0.2)
     plt.xticks(np.arange(min(hc1_order_ds1.time.values), max(hc1_order_ds1.time.values) + 1, 1.0))
     # plt.savefig(os.path.join(chart_path + "/ds1_order_history_" + user_id + ".png"), bbox_inches='tight')
-    plt.savefig(os.path.join(chart_path + "/" + user_id + "/DS1_Order_History.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(chart_path + "/" + user_id + "/drug_shortage_ds_order_history_1.png"), bbox_inches='tight')
     plt.clf()
 
     '''----------------------------------------DS2_ORDER_HISTORY--------------------------------------------'''
@@ -138,9 +138,9 @@ def graph(game_data, chart_path, user_id, agent):
     plt.title('Distributor 2 Order History')
     plt.grid(True, lw=0.5, zorder=0, color='w')
     plt.margins(y=0.2)
-    plt.xticks(np.arange(min(hc1_order_ds2.time.values), max(hc1_order_ds2.time.values) + 1, 1.0))
+    plt.xticks(np.arange(min(hc1_order_ds2.time.values), max(hc1_order_ds2.time.values) + 2, 1.0))
     # plt.savefig(os.path.join(chart_path + "/ds2_order_history_" + user_id + ".png"), bbox_inches='tight')
-    plt.savefig(os.path.join(chart_path + "/" + user_id + "/DS2_Order_History.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(chart_path + "/" + user_id + "/drug_shortage_ds_order_history_2.png"), bbox_inches='tight')
     plt.clf()
 
     '''----------------------------------------TOTAL_ORDER_HISTORY--------------------------------------------'''
@@ -158,9 +158,9 @@ def graph(game_data, chart_path, user_id, agent):
     plt.title('Order History')
     plt.grid(True, lw=0.5, zorder=0, color='w')
     plt.margins(y=0.2)
-    plt.xticks(np.arange(min(hc1_order.time.values), max(hc1_order.time.values) + 1, 1.0))
+    plt.xticks(np.arange(min(hc1_order.time.values), max(hc1_order.time.values) + 2, 1.0))
     # plt.savefig(os.path.join(chart_path + "/order_history_" + user_id + ".png"), bbox_inches='tight')
-    plt.savefig(os.path.join(chart_path + "/" + user_id + "/Order_History.png"), bbox_inches='tight')
+    plt.savefig(os.path.join(chart_path + "/" + user_id + "/drug_shortage_order_history_1.png"), bbox_inches='tight')
     plt.clf()
 
 

@@ -21,9 +21,11 @@ from server.game import build_game
 from server.graph import graph
 import simulator.agent as agents
 
-PATH = os.path.join(os.path.abspath('..'), 'client/')
 
-APP = Flask(__name__, static_url_path='', static_folder=PATH)
+PATH = os.path.join(os.path.abspath('..'), 'client/')
+PATH_2 = os.path.join(os.path.abspath('..'), '.wellknown/acme-challenge/')
+
+APP = Flask(__name__, static_url_path='', static_folder=PATH, instance_path=PATH_2)
 HASHIDS = Hashids(salt="Drug Shortage")
 
 context = SSL.Context(SSL.SSLv23_METHOD)
@@ -92,7 +94,8 @@ def new_game():
     game.hash_id = hash_id
     HASH_ID_TO_GAME_MAP[hash_id] = game
 
-    fast_forward_game(game, start_cycle)
+    agent_name = agent.name()
+    fast_forward_game(game, start_cycle, user_id, agent_name)
 
     token_payload = {
         'exp': datetime.datetime.utcnow() +
@@ -104,14 +107,26 @@ def new_game():
 
     return str(jwt.encode(token_payload, 'SECRET_KEY'))
 
-def fast_forward_game(game, cycle):
-    """ Let the default decision maker to run the game for a certain number of
-        cyles
 
+def fast_forward_game(game, cycle, user_id, agent_name):
+    """ Let the default decision maker to run the game for a certain number of
+        cycles
+
+        :param cycle: the starting cycle of the simulation for game
+        :param user_id: user_id
+        :param agent_name: agent name extracted from agent.name()
         :type game: Game
     """
     for i in range(0, cycle):
         game.runner.next_cycle()
+        for agent in game.simulation.agents:
+            game.data = game.data.append(
+                pd.DataFrame(agent.collect_data(game.simulation.now), columns=game.data_columns))
+            if agent.agent_type == "hc":
+                append_data_for_health_center_graph(game, agent)
+        game.data.reset_index()
+    graph(game.data[game.data['time'].isin(range(cycle-9, cycle+1))], PATH, user_id=user_id, agent=agent_name)
+
 
 @APP.route('/api/get_game_hash_id', methods=['GET'])
 def get_game_hash_id():
@@ -356,14 +371,14 @@ def make_decision():
     args = parser.parse_args()
     task = args['task']     # StudyCrafter only works with "task" right now for POST call and doesn't
     # accept any other argument
-    # token, decision_name, decision_value = task.split(";")
+    token, decision_name, decision_value = task.split(";")
 
-    token = request.args.get('token')
+    # token = request.args.get('token')
     game = get_game_and_agent_from_token(token)['game']
     agent = get_game_and_agent_from_token(token)['agent']
 
-    decision_name = request.args.get('decisionName')
-    decision_value = request.args.get('decisionValue')
+    # decision_name = request.args.get('decisionName')
+    # decision_value = request.args.get('decisionValue')
     if decision_value is None:
         decision_value = 0
 
@@ -376,7 +391,7 @@ def make_decision():
 
     print game.decisions
 
-    return ''
+    return 'Done with post!'
 
 
 @APP.route("/api/get_user_id", methods=['GET', 'POST'])
@@ -465,8 +480,9 @@ def draw_figures(game, user_id, agent_name):
     game.data.reset_index()
     print game.data.to_string()
 
-    if game.simulation.now > 9:
-        graph(game.data, PATH, user_id=user_id, agent=agent_name)
+    # if game.simulation.now > 9:
+    # graph(game.data, PATH, user_id=user_id, agent=agent_name)
+    graph(game.data[game.data['time'].isin(range(10, game.simulation.now + 1))], PATH, user_id=user_id, agent=agent_name)
 
     # if game.simulation.now > 10:
     #     hc1_data = game.data[game.data['agent'] == 'hc_4']
@@ -536,11 +552,11 @@ def update():
     return "updated!"
 
 
-@APP.route('/charts/<user_id>/<filename>')
+@APP.route('/client/<user_id>/<filename>')
 def send_image(user_id, filename):
     return send_from_directory(os.path.join(APP.static_folder + "/" + user_id), filename)
 
 
 if __name__ == '__main__':
     context = (cer, key)
-    APP.run(host='0.0.0.0', debug=True, ssl_context=context)
+    APP.run(host='129.10.67.141', debug=True, ssl_context=context)
