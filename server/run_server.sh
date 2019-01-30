@@ -1,3 +1,3 @@
 #!/bin/bash
 
-FLASK_APP=main.py FLASK_DEBUG=1 flask run
+FLASK_DEBUG=1 python main.py

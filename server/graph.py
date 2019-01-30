@@ -92,7 +92,7 @@ def graph(game_data, chart_path, user_id, agent):
     # plt.plot(t2, nup, label='Non-Urgent', color='b')
     # plt.plot(t2, up, label='Urgent', color='r')
     # plt.plot(t, tp, label='Total')
-    plt.legend(loc='upper left', numpoints=1)
+    # plt.legend(loc='upper left', numpoints=1)
     plt.xlabel('Time (Week)')
     plt.ylabel('Number of Patients')
     plt.title('Patients History')

@@ -8,5 +8,5 @@ npm run watch &
 cd ..
 
 cd server
-PYTHONPATH=$PYTHONPATH:$(pwd)/../../crisp ./run_server.sh
+PYTHONPATH=$PYTHONPATH:$(pwd)/../../crisp:$(pwd)/../ ./run_server.sh
 

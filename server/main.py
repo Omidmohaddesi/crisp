@@ -23,9 +23,8 @@ import simulator.agent as agents
 
 
 PATH = os.path.join(os.path.abspath('..'), 'client/')
-PATH_2 = os.path.join(os.path.abspath('..'), '.wellknown/acme-challenge/')
 
-APP = Flask(__name__, static_url_path='', static_folder=PATH, instance_path=PATH_2)
+APP = Flask(__name__, static_url_path='', static_folder=PATH)
 HASHIDS = Hashids(salt="Drug Shortage")
 
 context = SSL.Context(SSL.SSLv23_METHOD)
@@ -125,7 +124,7 @@ def fast_forward_game(game, cycle, user_id, agent_name):
             if agent.agent_type == "hc":
                 append_data_for_health_center_graph(game, agent)
         game.data.reset_index()
-    graph(game.data[game.data['time'].isin(range(cycle-9, cycle+1))], PATH, user_id=user_id, agent=agent_name)
+    # graph(game.data[game.data['time'].isin(range(cycle-9, cycle+1))], PATH, user_id=user_id, agent=agent_name)
 
 
 @APP.route('/api/get_game_hash_id', methods=['GET'])
@@ -559,4 +558,4 @@ def send_image(user_id, filename):
 
 if __name__ == '__main__':
     context = (cer, key)
-    APP.run(host='129.10.67.141', debug=True, ssl_context=context)
+    APP.run(host='0.0.0.0', port=8540, debug=True, ssl_context=context)
