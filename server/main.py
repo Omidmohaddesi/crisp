@@ -28,8 +28,10 @@ APP = Flask(__name__, static_url_path='', static_folder=PATH)
 HASHIDS = Hashids(salt="Drug Shortage")
 
 context = SSL.Context(SSL.SSLv23_METHOD)
-cer = os.path.join(os.path.dirname(__file__), 'ssl/cert.pem')
-key = os.path.join(os.path.dirname(__file__), 'ssl/key.pem')
+cert_path = os.getenv('SSLCERTPATH')
+key_path = os.getenv('SSLKEYPATH')
+cer = os.path.join(cert_path)
+key = os.path.join(key_path)
 
 GAMES = {}
 HASH_ID_TO_GAME_MAP = {}

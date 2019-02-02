@@ -120,3 +120,5 @@ package-lock.json
 *.png
 *.eps
 *.*~
+
+.well-known
