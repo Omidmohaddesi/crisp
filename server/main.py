@@ -20,11 +20,13 @@ import seaborn as sns
 from server.game import build_game
 from server.graph import graph
 import simulator.agent as agents
+import simulator.distruption as disr
 
 
 PATH = os.path.join(os.path.abspath('..'), 'client/')
+PATH_2 = os.path.join(os.path.abspath('..'), '.wellknown/acme-challenge/')
 
-APP = Flask(__name__, static_url_path='', static_folder=PATH)
+APP = Flask(__name__, static_url_path='', static_folder=PATH, instance_path=PATH_2)
 HASHIDS = Hashids(salt="Drug Shortage")
 
 context = SSL.Context(SSL.SSLv23_METHOD)
@@ -92,6 +94,8 @@ def new_game():
     agent = find_first_agent_of_type(game, role)
     game.user_id_to_agent_map[user_id] = agent
 
+    set_disruption_profile(game)
+
     hash_id = HASHIDS.encode(game_count)
     game.hash_id = hash_id
     HASH_ID_TO_GAME_MAP[hash_id] = game
@@ -127,7 +131,20 @@ def fast_forward_game(game, cycle, user_id, agent_name):
             if agent.agent_type == "hc":
                 append_data_for_health_center_graph(game, agent)
         game.data.reset_index()
-    # graph(game.data[game.data['time'].isin(range(cycle-9, cycle+1))], PATH, user_id=user_id, agent=agent_name)
+    graph(game.data[game.data['time'].isin(range(cycle-9, cycle+1))], PATH, user_id=user_id, agent=agent_name)
+
+
+def set_disruption_profile(game):
+    """ Set the disruption profile
+
+    :param game: Game
+    """
+    recall_disr = disr.RecallDisruption(game.simulation)
+    recall_disr.happen_day = 30
+    recall_disr.defect_day = [25, 26, 27, 28, 29]
+    recall_disr.defect_line = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    recall_disr.manufacturer_id = 0
+    game.simulation.disruptions.append(recall_disr)
 
 
 @APP.route('/api/get_game_hash_id', methods=['GET'])
@@ -211,6 +228,21 @@ def get_game_and_agent_from_token(token):
 
     # return (game, agent)
     return {'game': game, 'agent': agent, 'userId': user_id}
+
+
+def disruption_count(disr_profile):
+    amount = 0
+    batch_numbers = []
+    for day in disr_profile.defect_day:
+        for line in disr_profile.defect_line:
+            batch_number = str(disr_profile.manufacturer_id) + \
+                           '_' + str(day) + '_' + str(line)
+            batch_numbers.append(batch_number)
+    for batch in batch_numbers:
+        for inv in disr_profile.simulation.health_centers[0].inventory:
+            if inv.batch_no == batch:
+                amount = amount + inv.amount
+    return int(amount)
 
 
 @APP.route('/api/get_game_param', methods=['GET'])
@@ -318,6 +350,24 @@ def get_game_param():
         for order in agent.backlog:
             if order.src == game.simulation.health_centers[1]:
                 value += order.amount
+
+    elif param == 'disruption':
+        if game.simulation.now == 30:   # change this later to get data from game.simulation.disruptions
+            value = 'yes'
+        else:
+            value = 'no'
+
+    elif param == 'disruption-type':
+        if game.simulation.now == 30:   # change this later to get data from game.simulation.disruptions
+            value = 'recall'
+        else:
+            value = ''
+
+    elif param == 'disruption-size':
+        if game.simulation.now == 30:   # change this later to get data from game.simulation.disruptions
+            value = 30
+        else:
+            value = 0
 
     else:
         print "Unsupported parameter type " + param
@@ -451,8 +501,8 @@ def append_data_for_health_center_graph(game, agent):
     history = agent.get_history_item(now)
     history_p = agent.get_history_item(game.simulation.now - 1)
     game.data = game.data.append(pd.DataFrame([
-        [now, name, 'urgent', agent.urgent, ''],
-        [now, name, 'non_urgent', agent.non_urgent, ''],
+        [now, name, 'urgent', history['patient'][0], ''],
+        [now, name, 'non_urgent', history['patient'][1], ''],
         [now-1, name, 'order', sum(order.amount for order in history_p['order']), ''],
         [now-1, name, 'order_ds1', sum(order.amount for order in history_p['order']
                                        if order.dst == game.simulation.distributors[0]), ''],
@@ -561,4 +611,4 @@ def send_image(user_id, filename):
 
 if __name__ == '__main__':
     context = (cer, key)
-    APP.run(host='0.0.0.0', port=8540, debug=True, ssl_context=context)
+    APP.run(host='155.33.198.202', debug=True, ssl_context=context, threaded=True)
