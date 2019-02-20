@@ -180,7 +180,7 @@ def build_simulation_beer_game():
     # mn2.up_to_level = 329
 
     # patient_model = pmodel.NormalDistPatientModel([hc1, hc2])
-    patient_model = pmodel.NormalDistPatientModel([hc1])
+    patient_model = pmodel.PredefinedPatientModel([hc1])
     simulation.patient_model = patient_model
 
     runner = sim_runner.SimulationRunner(simulation, decision_maker)
