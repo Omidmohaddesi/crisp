@@ -229,6 +229,9 @@ def get_game_param():
     elif param == 'inventory':
         value = agent.inventory_level()
 
+    elif param == 'demand':
+        value = agent.demand(game.simulation.now)
+
     elif param == "urgent":
         if not isinstance(agent, agents.HealthCenter):
             abort(400)
