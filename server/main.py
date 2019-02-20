@@ -82,9 +82,10 @@ def new_game():
     start_cycle = int(request.args.get('startCycle'))
     role = request.args.get('role')
     num_human_players = int(request.args.get('numHumanPlayer'))
+    game_type = request.args.get('gameType')
 
     game_count = len(GAMES)
-    game = build_game()
+    game = build_game(game_type)
     game.id = game_id
     game.num_human_players = num_human_players
     GAMES[game_id] = game
