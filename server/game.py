@@ -106,9 +106,12 @@ class Game(object):
             return
 
 
-def build_game():
+def build_game(game_type=None):
     """ instantiate a new game """
-    simulation, runner = simulation_builder.build_simulation()
+    if game_type == 'beerGame':
+        simulation, runner = simulation_builder.build_simulation_beer_game()
+    else:
+        simulation, runner = simulation_builder.build_simulation()
 
     game = Game()
     game.simulation = simulation
