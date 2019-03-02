@@ -21,6 +21,7 @@ class Game(object):
         self.user_id_to_agent_map = {}
         self.decisions = []
         self.done_with_current_cycle = []
+        self.study_name = ""
 
         self.data_columns = ['time', 'agent', 'item', 'value', 'unit']
         self.data = pd.DataFrame(columns=self.data_columns)
@@ -106,14 +107,15 @@ class Game(object):
             return
 
 
-def build_game(game_type=None):
+def build_game(study_name=None):
     """ instantiate a new game """
-    if game_type == 'beerGame':
+    game = Game()
+    game.study_name = study_name
+    if game.study_name == 'beerGame':
         simulation, runner = simulation_builder.build_simulation_beer_game()
     else:
         simulation, runner = simulation_builder.build_simulation()
 
-    game = Game()
     game.simulation = simulation
     game.runner = runner
     runner._update_patient(0)

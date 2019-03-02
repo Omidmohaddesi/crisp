@@ -60,7 +60,15 @@ def find_first_agent_of_type(game, role):
     if role == 'health-center':
         agent_list = game.simulation.health_centers
     elif role == 'distributor':
-        agent_list = game.simulation.distributors
+        if game.study_name == 'beerGame':
+            agent_list = [k for k in game.simulation.distributors if k.agent_name == 'DS']
+        else:
+            agent_list = game.simulation.distributors
+    elif role == 'wholesaler':
+        if game.study_name == 'beerGame':
+            agent_list = [k for k in game.simulation.distributors if k.agent_name == 'WS']
+        else:
+            agent_list = game.simulation.distributors
     elif role == 'manufacturer':
         agent_list = game.simulation.manufacturers
 
@@ -82,10 +90,10 @@ def new_game():
     start_cycle = int(request.args.get('startCycle'))
     role = request.args.get('role')
     num_human_players = int(request.args.get('numHumanPlayer'))
-    game_type = request.args.get('gameType')
+    study_name = request.args.get('studyName')
 
     game_count = len(GAMES)
-    game = build_game(game_type)
+    game = build_game(study_name)
     game.id = game_id
     game.num_human_players = num_human_players
     GAMES[game_id] = game
@@ -565,3 +573,4 @@ def send_image(user_id, filename):
 if __name__ == '__main__':
     context = (cer, key)
     APP.run(host='0.0.0.0', port=8540, debug=True, ssl_context=context)
+    # APP.run(host='155.33.198.202', debug=True)
