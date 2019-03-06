@@ -2,7 +2,112 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from scipy.interpolate import pchip
 # from game import build_game
+
+
+def beer_game_graph(data, chart_path, user_id):
+
+    if not os.path.exists(os.path.join(chart_path + "/" + user_id)):
+        os.makedirs(os.path.join(chart_path + "/" + user_id))
+
+    data = data.drop_duplicates()
+    data = data[data['time'] > 0]
+    data = data[data['time'] < 21]
+    data = data.drop(['unit'], axis=1)
+    inv_data = data[data['item'] == 'inventory']
+    order_data = data[data['item'] == 'order'].drop_duplicates()
+    demand = data[data['item'] == 'demand']
+    production = data[data['item'] == 'in_production']
+    x_new = np.asarray(map(int, order_data[order_data['agent'] == 'MN'].time.values), dtype=np.float32)
+    x_smooth = np.linspace(min(x_new), max(x_new), 300)
+
+    '''----------------------------------------INVENTORY_CHART--------------------------------------------'''
+
+    with plt.xkcd():
+        y_new1 = np.asarray(map(float, inv_data[inv_data['agent'] == 'MN'].value.values), dtype=np.float32)
+        y_new2 = np.asarray(map(float, inv_data[inv_data['agent'] == 'DS'].value.values), dtype=np.float32)
+        y_new3 = np.asarray(map(float, inv_data[inv_data['agent'] == 'WS'].value.values), dtype=np.float32)
+        y_new4 = np.asarray(map(float, inv_data[inv_data['agent'] == 'HC'].value.values), dtype=np.float32)
+        pch1 = pchip(x_new, y_new1)
+        pch2 = pchip(x_new, y_new2)
+        pch3 = pchip(x_new, y_new3)
+        pch4 = pchip(x_new, y_new4)
+        plt.figure(figsize=(8, 5))
+        ax1 = plt.plot(x_smooth, pch1(x_smooth), label='Manufacturer')
+        ax2 = plt.plot(x_smooth, pch2(x_smooth), label='Distributor')
+        ax3 = plt.plot(x_smooth, pch3(x_smooth), label='Wholesaler (You)')
+        ax4 = plt.plot(x_smooth, pch4(x_smooth), label='Health-center')
+        plt.legend(loc='lower right', numpoints=1, prop={'size': 10})
+        plt.xlabel('Time (Week)')
+        plt.ylabel('Quantity')
+        plt.title('Inventory level vs. Time')
+        plt.xticks(np.arange(min(x_new), max(x_new) + 1, 1.0))
+        plt.margins(x=0)
+        plt.grid(True, lw=0.15, zorder=0)
+        plt.savefig(os.path.join(chart_path + "/" + user_id + "/beer_game_inventory_chart.png"),
+                    bbox_inches='tight', dpi=300)
+        plt.clf()
+
+        '''----------------------------------------ORDER_QUANTITY--------------------------------------------'''
+
+        y_new1 = np.asarray(map(float, production[production['agent'] == 'MN'].value.values), dtype=np.float32)
+        y_new2 = np.asarray(map(float, order_data[order_data['agent'] == 'DS'].value.values), dtype=np.float32)
+        y_new3 = np.asarray(map(float, order_data[order_data['agent'] == 'WS'].value.values), dtype=np.float32)
+        y_new4 = np.asarray(map(float, order_data[order_data['agent'] == 'HC'].value.values), dtype=np.float32)
+        y_new5 = np.asarray(map(float, demand[demand['agent'] == 'HC'].value.values), dtype=np.float32)
+        pch1 = pchip(x_new, y_new1)
+        pch2 = pchip(x_new, y_new2)
+        pch3 = pchip(x_new, y_new3)
+        pch4 = pchip(x_new, y_new4)
+        pch5 = pchip(x_new, y_new5)
+        plt.figure(figsize=(8, 5))
+        ax1 = plt.plot(x_smooth, pch1(x_smooth), label='Manufacturer')
+        ax2 = plt.plot(x_smooth, pch2(x_smooth), label='Distributor')
+        ax3 = plt.plot(x_smooth, pch3(x_smooth), label='Wholesaler (You)')
+        ax4 = plt.plot(x_smooth, pch4(x_smooth), label='Health-center')
+        ax5 = plt.plot(x_smooth, pch5(x_smooth), label='Demand')
+        plt.legend(loc='upper left', numpoints=1, prop={'size': 10})
+        plt.xlabel('Time (Week)')
+        plt.ylabel('Quantity')
+        plt.title('Order/Production Quantity vs. Time')
+        plt.xticks(np.arange(min(x_new), max(x_new) + 1, 1.0))
+        plt.ylim(bottom=0)
+        plt.grid(True, lw=0.15, zorder=0)
+        plt.margins(x=0)
+        plt.savefig(os.path.join(chart_path + "/" + user_id + "/beer_game_order_quantity.png"),
+                    bbox_inches='tight', dpi=300)
+        plt.clf()
+
+        '''----------------------------------------CUMULATIVE_COST--------------------------------------------'''
+
+        inv_data.loc[inv_data['value'] > 0, 'cost'] = inv_data.loc[inv_data['value'] > 0, 'value'] / 2
+        inv_data.loc[inv_data['value'] <= 0, 'cost'] = abs(inv_data.loc[inv_data['value'] <= 0, 'value'])
+        inv_data['cost'] = inv_data['cost'].astype(float)
+        inv_data['cum_cost'] = inv_data.groupby('agent')['cost'].cumsum()
+        y_new1 = np.asarray(map(float, inv_data[inv_data['agent'] == 'MN'].cum_cost.values), dtype=np.float32)
+        y_new2 = np.asarray(map(float, inv_data[inv_data['agent'] == 'DS'].cum_cost.values), dtype=np.float32)
+        y_new3 = np.asarray(map(float, inv_data[inv_data['agent'] == 'WS'].cum_cost.values), dtype=np.float32)
+        y_new4 = np.asarray(map(float, inv_data[inv_data['agent'] == 'HC'].cum_cost.values), dtype=np.float32)
+        pch1 = pchip(x_new, y_new1)
+        pch2 = pchip(x_new, y_new2)
+        pch3 = pchip(x_new, y_new3)
+        pch4 = pchip(x_new, y_new4)
+        plt.figure(figsize=(8, 5))
+        ax1 = plt.plot(x_smooth, pch1(x_smooth), label='Manufacturer')
+        ax2 = plt.plot(x_smooth, pch2(x_smooth), label='Distributor')
+        ax3 = plt.plot(x_smooth, pch3(x_smooth), label='Wholesaler (You)')
+        ax4 = plt.plot(x_smooth, pch4(x_smooth), label='Health-center')
+        plt.legend(loc='upper left', numpoints=1, prop={'size': 10})
+        plt.xlabel('Time (Week)')
+        plt.ylabel('Cumulative Cost ($)')
+        plt.title('Cumulative Cost vs. Time')
+        plt.xticks(np.arange(min(x_new), max(x_new) + 1, 1.0))
+        plt.margins(x=0)
+        plt.grid(True, lw=0.15, zorder=0)
+        plt.savefig(os.path.join(chart_path + "/" + user_id + "/beer_game_cum_cost.png"),
+                    bbox_inches='tight', dpi=300)
+        plt.clf()
 
 
 def graph(game_data, chart_path, user_id, agent):

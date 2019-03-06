@@ -51,13 +51,15 @@ class Game(object):
         elif game_decision['decision_name'] == 'order_from_ds1':
             decision = OrderDecision()
             decision.amount = game_decision['decision_value']
-            decision.upstream = self.simulation.distributors[0]
+            # decision.upstream = self.simulation.distributors[0]
+            decision.upstream = [k for k in self.simulation.distributors if k.agent_name == 'DS'][0]
             game_decision['agent'].decisions.append(decision)
 
         elif game_decision['decision_name'] == 'order_from_ds2':
             decision = OrderDecision()
             decision.amount = game_decision['decision_value']
-            decision.upstream = self.simulation.distributors[1]
+            # decision.upstream = self.simulation.distributors[1]
+            decision.upstream = [k for k in self.simulation.distributors if k.agent_name == 'DS'][1]
             game_decision['agent'].decisions.append(decision)
 
         elif game_decision['decision_name'] == 'order_from_mn1':

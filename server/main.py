@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from server.game import build_game
-from server.graph import graph
+from server.graph import graph, beer_game_graph
 import simulator.agent as agents
 
 
@@ -438,6 +438,12 @@ def next_cycle():
 
 def do_next_cycle(game):
     """ Update a game to the next cycle """
+    game.simulation.now += 1
+    game.runner._update_patient(game.simulation.now)
+    game.runner._update_network(game.simulation.now)
+    game.runner._update_agents(game.simulation.now)
+    game.runner._exogenous_event(game.simulation.now)
+
     game.runner._make_decision(game.simulation.now)
     remove_human_controlled_agents_decisions(game)
     game.parse_decisions()
@@ -448,11 +454,11 @@ def do_next_cycle(game):
     # except Exception as e:
     #     print e
 
-    game.simulation.now += 1
-    game.runner._update_patient(game.simulation.now)
-    game.runner._update_agents(game.simulation.now)
-    game.runner._update_network(game.simulation.now)
-    game.runner._exogenous_event(game.simulation.now)
+    # game.simulation.now += 1
+    # game.runner._update_patient(game.simulation.now)
+    # game.runner._update_agents(game.simulation.now)
+    # game.runner._update_network(game.simulation.now)
+    # game.runner._exogenous_event(game.simulation.now)
 
 
 def append_data_for_health_center_graph(game, agent):
@@ -485,17 +491,24 @@ def append_data_for_health_center_graph(game, agent):
 
 def draw_figures(game, user_id, agent_name):
 
-    for agent in game.simulation.agents:
-        game.data = game.data.append(
-            pd.DataFrame(agent.collect_data(game.simulation.now), columns=game.data_columns))
-        if agent.agent_type == "hc":
-            append_data_for_health_center_graph(game, agent)
-    game.data.reset_index()
-    print game.data.to_string()
-
-    # if game.simulation.now > 9:
-    # graph(game.data, PATH, user_id=user_id, agent=agent_name)
-    graph(game.data[game.data['time'].isin(range(10, game.simulation.now + 1))], PATH, user_id=user_id, agent=agent_name)
+    if game.study_name == 'beerGame':
+        for agent in game.simulation.agents:
+            game.data = game.data.append(
+                pd.DataFrame(agent.collect_data(game.simulation.now), columns=game.data_columns)
+            )
+            if game.simulation.now == 21:
+                beer_game_graph(game.data, PATH, user_id)
+    else:
+        for agent in game.simulation.agents:
+            game.data = game.data.append(
+                pd.DataFrame(agent.collect_data(game.simulation.now), columns=game.data_columns))
+            if agent.agent_type == "hc":
+                append_data_for_health_center_graph(game, agent)
+        game.data.reset_index()
+        print game.data.to_string()
+        # if game.simulation.now > 9:
+        # graph(game.data, PATH, user_id=user_id, agent=agent_name)
+        graph(game.data[game.data['time'].isin(range(10, game.simulation.now + 1))], PATH, user_id=user_id, agent=agent_name)
 
     # if game.simulation.now > 10:
     #     hc1_data = game.data[game.data['agent'] == 'hc_4']
@@ -573,4 +586,4 @@ def send_image(user_id, filename):
 if __name__ == '__main__':
     context = (cer, key)
     APP.run(host='0.0.0.0', port=8540, debug=True, ssl_context=context)
-    # APP.run(host='155.33.198.202', debug=True)
+    # APP.run(host='0.0.0.0', debug=True)

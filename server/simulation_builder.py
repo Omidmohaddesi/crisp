@@ -131,7 +131,7 @@ def build_simulation_beer_game():
     simulation.patient_model = patient_model
 
     disruption = disr.DemandChangeDisruption([patient_model])
-    disruption.start_time = 104
+    disruption.start_time = 4
     disruption.end_time = 100000000
     disruption.change = 40
     simulation.disruptions.append(disruption)
