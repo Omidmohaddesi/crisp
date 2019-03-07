@@ -1,9 +1,11 @@
 import os
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.interpolate import pchip
 # from game import build_game
+matplotlib.use('agg')
 
 
 def beer_game_graph(data, chart_path, user_id):
