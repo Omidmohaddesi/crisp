@@ -48,7 +48,7 @@ def beer_game_graph(data, chart_path, user_id):
         plt.margins(x=0)
         plt.grid(True, lw=0.15, zorder=0)
         plt.savefig(os.path.join(chart_path + "/" + user_id + "/beer_game_inventory_chart.png"),
-                    bbox_inches='tight', dpi=300)
+                    bbox_inches='tight', dpi=150)
         plt.clf()
 
         '''----------------------------------------ORDER_QUANTITY--------------------------------------------'''
@@ -78,7 +78,7 @@ def beer_game_graph(data, chart_path, user_id):
         plt.grid(True, lw=0.15, zorder=0)
         plt.margins(x=0)
         plt.savefig(os.path.join(chart_path + "/" + user_id + "/beer_game_order_quantity.png"),
-                    bbox_inches='tight', dpi=300)
+                    bbox_inches='tight', dpi=150)
         plt.clf()
 
         '''----------------------------------------CUMULATIVE_COST--------------------------------------------'''
@@ -108,7 +108,7 @@ def beer_game_graph(data, chart_path, user_id):
         plt.margins(x=0)
         plt.grid(True, lw=0.15, zorder=0)
         plt.savefig(os.path.join(chart_path + "/" + user_id + "/beer_game_cum_cost.png"),
-                    bbox_inches='tight', dpi=300)
+                    bbox_inches='tight', dpi=150)
         plt.clf()
 
 
