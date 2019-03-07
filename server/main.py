@@ -438,11 +438,11 @@ def next_cycle():
 
 def do_next_cycle(game):
     """ Update a game to the next cycle """
-    # game.simulation.now += 1
-    # game.runner._update_patient(game.simulation.now)
-    # game.runner._update_network(game.simulation.now)
-    # game.runner._update_agents(game.simulation.now)
-    # game.runner._exogenous_event(game.simulation.now)
+    game.simulation.now += 1
+    game.runner._update_patient(game.simulation.now)
+    game.runner._update_network(game.simulation.now)
+    game.runner._update_agents(game.simulation.now)
+    game.runner._exogenous_event(game.simulation.now)
 
     game.runner._make_decision(game.simulation.now)
     remove_human_controlled_agents_decisions(game)
@@ -454,11 +454,11 @@ def do_next_cycle(game):
     # except Exception as e:
     #     print e
 
-    game.simulation.now += 1
-    game.runner._update_patient(game.simulation.now)
-    game.runner._update_agents(game.simulation.now)
-    game.runner._update_network(game.simulation.now)
-    game.runner._exogenous_event(game.simulation.now)
+    # game.simulation.now += 1
+    # game.runner._update_patient(game.simulation.now)
+    # game.runner._update_agents(game.simulation.now)
+    # game.runner._update_network(game.simulation.now)
+    # game.runner._exogenous_event(game.simulation.now)
 
 
 def append_data_for_health_center_graph(game, agent):
