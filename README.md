@@ -5,6 +5,7 @@
 * Python 2.7
 * Pip
 * Relatively new nodejs and npm
+* crisp: https://gitlab.com/syifan/crisp
 
 ## How to deploy
 
